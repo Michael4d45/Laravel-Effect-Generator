@@ -1,5 +1,5 @@
 {
-    "name": "laravel/effect-schema-generator",
+    "name": "michael4d45/effect-schema-generator",
     "description": "Generate TypeScript interfaces and Effect schemas from PHP Spatie Data classes",
     "type": "library",
     "keywords": [
@@ -12,8 +12,8 @@
     "license": "MIT",
     "authors": [
         {
-            "name": "Laravel Team",
-            "email": "hello@laravel.com"
+            "name": "Michael",
+            "email": "michael@laravel.com"
         }
     ],
     "require": {

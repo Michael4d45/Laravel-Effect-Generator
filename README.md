@@ -1,8 +1,8 @@
 # Laravel Effect Schema Generator
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/laravel/effect-schema-generator.svg?style=flat-square)](https://packagist.org/packages/laravel/effect-schema-generator)
-[![Total Downloads](https://img.shields.io/packagist/dt/laravel/effect-schema-generator.svg?style=flat-square)](https://packagist.org/packages/laravel/effect-schema-generator)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/laravel/effect-schema-generator/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/laravel/effect-schema-generator/actions)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/michael4d45/effect-schema-generator.svg?style=flat-square)](https://packagist.org/packages/michael4d45/effect-schema-generator)
+[![Total Downloads](https://img.shields.io/packagist/dt/michael4d45/effect-schema-generator.svg?style=flat-square)](https://packagist.org/packages/michael4d45/effect-schema-generator)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/Michael4d45/Laravel-Effect-Generator/Tests?branch=main&label=tests&style=flat-square)](https://github.com/Michael4d45/Laravel-Effect-Generator/actions)
 
 Generate TypeScript interfaces and Effect schemas from PHP Spatie Data classes. This package bridges your PHP domain models to your TypeScript frontend contracts by generating AST-based representations and transforming them into valid TypeScript code.
 
@@ -11,7 +11,7 @@ Generate TypeScript interfaces and Effect schemas from PHP Spatie Data classes. 
 You can install the package via composer:
 
 ```bash
-composer require laravel/effect-schema-generator
+composer require michael4d45/effect-schema-generator
 ```
 
 You can publish the config file with:
