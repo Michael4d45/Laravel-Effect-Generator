@@ -235,7 +235,7 @@ it('generates imports for transformer-provided types', function () {
 
     $content = file_get_contents($this->outputDir.'/App/Data.ts');
     // Should import LengthAwarePaginator from the transformer file
-    expect($content)->toContain("import { LengthAwarePaginator } from '../Illuminate/Pagination';");
+    expect($content)->toContain("import { LengthAwarePaginator, LengthAwarePaginatorSchema } from '../Illuminate/Pagination';");
     expect($content)->toContain('readonly users: LengthAwarePaginator<UserData>;');
 });
 

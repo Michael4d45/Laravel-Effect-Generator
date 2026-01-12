@@ -27,7 +27,7 @@ class LengthAwarePaginatorPlugin implements Transformer
     public function transform($input, WriterContext $context): string
     {
         if (
-            !$input instanceof TypeIR || !$input instanceof ClassReferenceTypeIR
+            ! $input instanceof TypeIR || ! $input instanceof ClassReferenceTypeIR
         ) {
             return 'unknown';
         }
@@ -51,26 +51,21 @@ class LengthAwarePaginatorPlugin implements Transformer
                     $typeParam,
                     $context,
                 );
+
                 return match ($context) {
-                    WriterContext::INTERFACE
-                        => "LengthAwarePaginatorSchema({$schemaType})",
-                    WriterContext::ENCODED_INTERFACE
-                        => "LengthAwarePaginatorSchema({$schemaType})",
-                    WriterContext::SCHEMA
-                        => "LengthAwarePaginatorSchema({$schemaType})",
-                    WriterContext::ENUM
-                        => "LengthAwarePaginatorSchema({$schemaType})",
+                    WriterContext::INTERFACE => "LengthAwarePaginatorSchema({$schemaType})",
+                    WriterContext::ENCODED_INTERFACE => "LengthAwarePaginatorSchema({$schemaType})",
+                    WriterContext::SCHEMA => "LengthAwarePaginatorSchema({$schemaType})",
+                    WriterContext::ENUM => "LengthAwarePaginatorSchema({$schemaType})",
                 };
             }
 
             $innerType = $this->transformTypeParam($typeParam, $context);
+
             return match ($context) {
-                WriterContext::INTERFACE
-                    => "LengthAwarePaginator<{$innerType}>",
-                WriterContext::ENCODED_INTERFACE
-                    => "LengthAwarePaginator<{$innerType}>",
-                WriterContext::SCHEMA
-                    => "LengthAwarePaginatorSchema({$innerType})",
+                WriterContext::INTERFACE => "LengthAwarePaginator<{$innerType}>",
+                WriterContext::ENCODED_INTERFACE => "LengthAwarePaginator<{$innerType}>",
+                WriterContext::SCHEMA => "LengthAwarePaginatorSchema({$innerType})",
                 WriterContext::ENUM => "LengthAwarePaginator<{$innerType}>",
             };
         }
@@ -88,79 +83,78 @@ class LengthAwarePaginatorPlugin implements Transformer
         return true;
     }
 
-    public function getFileContent(): null|string
+    public function getFileContent(): ?string
     {
         return <<<'TS'
-        import { Schema as S } from 'effect';
+import { Schema as S } from 'effect';
 
-        export interface PaginationLinks {
-            readonly url: string | null;
-            readonly label: string;
-            readonly page: number | null;
-            readonly active: boolean;
-        }
+export interface PaginationLinks {
+    readonly url: string | null;
+    readonly label: string;
+    readonly page: number | null;
+    readonly active: boolean;
+}
 
-        export const PaginationLinksSchema = S.Struct({
-            url: S.NullOr(S.String),
-            label: S.String,
-            page: S.NullOr(S.Number),
-            active: S.Boolean,
-        });
+export const PaginationLinksSchema = S.Struct({
+    url: S.NullOr(S.String),
+    label: S.String,
+    page: S.NullOr(S.Number),
+    active: S.Boolean,
+});
 
-        export interface PaginationMeta {
-            readonly current_page: number;
-            readonly first_page_url: string;
-            readonly from: number | null;
-            readonly last_page: number;
-            readonly last_page_url: string;
-            readonly next_page_url: string | null;
-            readonly path: string;
-            readonly per_page: number;
-            readonly prev_page_url: string | null;
-            readonly to: number | null;
-            readonly total: number;
-        }
+export interface PaginationMeta {
+    readonly current_page: number;
+    readonly first_page_url: string;
+    readonly from: number | null;
+    readonly last_page: number;
+    readonly last_page_url: string;
+    readonly next_page_url: string | null;
+    readonly path: string;
+    readonly per_page: number;
+    readonly prev_page_url: string | null;
+    readonly to: number | null;
+    readonly total: number;
+}
 
-        export const PaginationMetaSchema = S.Struct({
-            current_page: S.Number,
-            first_page_url: S.String,
-            from: S.NullOr(S.Number),
-            last_page: S.Number,
-            last_page_url: S.String,
-            next_page_url: S.NullOr(S.String),
-            path: S.String,
-            per_page: S.Number,
-            prev_page_url: S.NullOr(S.String),
-            to: S.NullOr(S.Number),
-            total: S.Number,
-        });
+export const PaginationMetaSchema = S.Struct({
+    current_page: S.Number,
+    first_page_url: S.String,
+    from: S.NullOr(S.Number),
+    last_page: S.Number,
+    last_page_url: S.String,
+    next_page_url: S.NullOr(S.String),
+    path: S.String,
+    per_page: S.Number,
+    prev_page_url: S.NullOr(S.String),
+    to: S.NullOr(S.Number),
+    total: S.Number,
+});
 
-        export interface LengthAwarePaginator<T extends object> {
-            readonly data: readonly T[];
-            readonly links: readonly PaginationLinks[];
-            readonly meta: PaginationMeta;
-        }
+export interface LengthAwarePaginator<T extends object> {
+    readonly data: readonly T[];
+    readonly links: readonly PaginationLinks[];
+    readonly meta: PaginationMeta;
+}
 
-        export const LengthAwarePaginatorSchema = <A extends S.Schema.Any>(item: A) =>
-            S.Struct({
-                data: S.Array(item),
-                links: S.Array(PaginationLinksSchema),
-                meta: PaginationMetaSchema,
-            });
-        TS;
+export const LengthAwarePaginatorSchema = <A extends S.Schema.Any>(item: A) =>
+    S.Struct({
+        data: S.Array(item),
+        links: S.Array(PaginationLinksSchema),
+        meta: PaginationMetaSchema,
+    });
+TS;
     }
 
-    public function getFilePath(): null|string
+    public function getFilePath(): ?string
     {
         return 'Illuminate/Pagination.ts';
     }
 
     private function handles(TypeIR $type): bool
     {
-        return (
+        return
             $type instanceof ClassReferenceTypeIR
-            && $type->fqcn === 'Illuminate\Pagination\LengthAwarePaginator'
-        );
+            && $type->fqcn === 'Illuminate\Pagination\LengthAwarePaginator';
     }
 
     private function transformTypeParam(
@@ -172,15 +166,14 @@ class LengthAwarePaginatorPlugin implements Transformer
 
     private function isPrimitiveType(TypeIR $type): bool
     {
-        return (
+        return
             $type instanceof StringTypeIR
             || $type instanceof IntTypeIR
             || $type instanceof FloatTypeIR
             || $type instanceof BoolTypeIR
             || $type instanceof ArrayTypeIR
             || $type instanceof UnionTypeIR
-            || $type instanceof NullableTypeIR
-        );
+            || $type instanceof NullableTypeIR;
     }
 
     private function transformTypeParamToSchema(

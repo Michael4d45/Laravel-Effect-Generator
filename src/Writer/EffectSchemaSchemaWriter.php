@@ -84,10 +84,6 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
                 $imports[$relativePath]["{$name}Schema"] = "{$name}Schema";
                 $imports[$relativePath][$name] = $name;
 
-                if (!($info['isEnum'] ?? false)) {
-                    $imports[$relativePath]["{$name}Encoded"] = "{$name}Encoded";
-                }
-
                 continue;
             }
 
@@ -178,7 +174,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
                 }
 
                 $handled = true;
-                if ($transformer instanceof FileProvidingPlugin) {
+                if ($transformer->providesFile()) {
                     $referencedTypes[$type->fqcn] = [
                         'namespace' => $type->namespace,
                         'alias' => $type->alias,
