@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+namespace EffectSchemaGenerator\Writer;
+
+use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\Writer\Transformer;
+use EffectSchemaGenerator\Writer\WriterContext;
+
+/**
+ * Generates Effect Schema definitions for enums (e.g., export const QuestionTypeSchema = S.Union(...)).
+ */
+class EffectSchemaEnumWriter implements EnumWriter, Transformer
+{
+    public function writeEnum(EnumIR $enum): string
+    {
+        $literals = [];
+        foreach ($enum->cases as $case) {
+            $value = $case['value'] ?? $case['name'];
+            if (is_string($value)) {
+                $literals[] = 'S.Literal("' . $value . '")';
+            } else {
+                $literals[] = 'S.Literal(' . $value . ')';
+            }
+        }
+
+        $literalsStr = implode(', ', $literals);
+        return "export const {$enum->name}Schema = S.Union({$literalsStr});";
+    }
+
+    public function canTransform($input, WriterContext $context): bool
+    {
+        return $input instanceof EnumIR && $context === WriterContext::ENUM;
+    }
+
+    public function transform($input, WriterContext $context): string
+    {
+        if ($input instanceof EnumIR && $context === WriterContext::ENUM) {
+            return $this->writeEnum($input);
+        }
+        return '';
+    }
+
+    public function providesFile(): bool
+    {
+        return false;
+    }
+
+    public function getFileContent(): null|string
+    {
+        return null;
+    }
+
+    public function getFilePath(): null|string
+    {
+        return null;
+    }
+}

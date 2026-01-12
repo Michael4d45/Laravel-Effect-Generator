@@ -1,0 +1,66 @@
+{
+    "name": "laravel/effect-schema-generator",
+    "description": "Generate TypeScript interfaces and Effect schemas from PHP Spatie Data classes",
+    "type": "library",
+    "keywords": [
+        "laravel",
+        "typescript",
+        "effect-ts",
+        "schema-generator",
+        "spatie-data"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Laravel Team",
+            "email": "hello@laravel.com"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.0|^12.0",
+        "laravel/surveyor": "^0.1",
+        "spatie/laravel-data": "^4.0",
+        "phpdocumentor/reflection-docblock": "^5.3",
+        "nikic/php-parser": "^5.4"
+    },
+    "require-dev": {
+        "pestphp/pest": "^4.0",
+        "orchestra/testbench": "^10.0",
+        "carthage-software/mago": "^1.0.3",
+        "michael4d45/coverage-treemap": "^1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "EffectSchemaGenerator\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EffectSchemaGenerator\\Tests\\": "tests/",
+            "App\\": "tests/Fixtures/src/app/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "EffectSchemaGenerator\\EffectSchemaGeneratorServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "carthage-software/mago": true
+        }
+    },
+    "scripts": {
+        "test": "pest",
+        "lint": "./vendor/bin/mago lint",
+        "fmt": "./vendor/bin/mago fmt",
+        "check": [
+            "@lint",
+            "@test"
+        ]
+    }
+}
