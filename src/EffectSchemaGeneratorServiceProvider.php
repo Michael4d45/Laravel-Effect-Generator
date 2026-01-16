@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator;
 
 use EffectSchemaGenerator\Builder\AstBuilder;
+use EffectSchemaGenerator\Commands\ClearCacheCommand;
 use EffectSchemaGenerator\Commands\GenerateSchemasCommand;
 use EffectSchemaGenerator\Discovery\ClassDiscoverer;
 use EffectSchemaGenerator\Reflection\DataClassParser;
@@ -72,6 +73,7 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
             ));
 
             $this->commands([
+                ClearCacheCommand::class,
                 GenerateSchemasCommand::class,
             ]);
 
