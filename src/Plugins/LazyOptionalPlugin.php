@@ -122,6 +122,7 @@ class LazyOptionalPlugin implements Transformer
                     $context,
                 );
             }
+
             // If no type parameters, return unknown
             return 'unknown';
         }
@@ -178,11 +179,19 @@ class LazyOptionalPlugin implements Transformer
         $typesWithoutLazyOptional = [];
         foreach ($type->types as $unionType) {
             $processed = $this->removeLazyFromType($unionType);
+
             if (
                 $processed instanceof UnknownTypeIR
                 && !$unionType instanceof UnknownTypeIR
             ) {
-                // If the type became unknown (because it was Lazy or Optional), skip it
+                continue;
+            }
+
+            if (
+                $processed
+                    instanceof \EffectSchemaGenerator\IR\Types\NullableTypeIR
+                && $processed->innerType instanceof UnknownTypeIR
+            ) {
                 continue;
             }
 
@@ -224,6 +233,7 @@ class LazyOptionalPlugin implements Transformer
 
         if ($type instanceof NullableTypeIR) {
             $inner = $this->removeLazyFromType($type->innerType);
+
             return new NullableTypeIR($inner);
         }
 
@@ -244,11 +254,16 @@ class LazyOptionalPlugin implements Transformer
         // Check union types at top level (e.g., Collection|Lazy)
         if ($type instanceof UnionTypeIR) {
             foreach ($type->types as $unionType) {
+                // Handle nullable union members (e.g., Nullable(Optional))
+                $candidate = $unionType instanceof NullableTypeIR
+                    ? $unionType->innerType
+                    : $unionType;
+
                 if (
                     !(
-                        $unionType instanceof ClassReferenceTypeIR
+                        $candidate instanceof ClassReferenceTypeIR
                         && in_array(
-                            $unionType->fqcn,
+                            $candidate->fqcn,
                             [
                                 'Spatie\LaravelData\Lazy',
                                 'Spatie\LaravelData\Optional',
@@ -262,6 +277,7 @@ class LazyOptionalPlugin implements Transformer
 
                 return true;
             }
+
             return false;
         }
 

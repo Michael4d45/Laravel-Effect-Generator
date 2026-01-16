@@ -12,24 +12,18 @@ use EffectSchemaGenerator\IR\Types\NullableTypeIR;
 use EffectSchemaGenerator\IR\Types\RecordTypeIR;
 use EffectSchemaGenerator\IR\Types\StructTypeIR;
 use EffectSchemaGenerator\IR\Types\UnionTypeIR;
-use EffectSchemaGenerator\Writer\Transformer;
-use EffectSchemaGenerator\Writer\WriterContext;
 
 /**
  * Default implementation of SchemaWriter that generates TypeScript interfaces.
  */
 class DefaultSchemaWriter implements SchemaWriter, Transformer
 {
-    private TypeScriptWriter $typeWriter;
-
     public function __construct(
         private PropertyWriter $propertyWriter,
         private array $transformers = [],
         private string $suffix = '',
         private WriterContext $context = WriterContext::INTERFACE,
-    ) {
-        $this->typeWriter = new TypeScriptWriter($transformers, $this->context);
-    }
+    ) {}
 
     public function writeSchema(
         SchemaIR $schema,
@@ -39,6 +33,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         array &$imports,
     ): string {
         $properties = [];
+        /** @var array<string, array{namespace: string, alias: string, fqcn: string}> */
         $referencedTypes = [];
 
         foreach ($schema->properties as $property) {
@@ -66,6 +61,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                     $imports[$relativePath] = [];
                 }
                 $imports[$relativePath][$name] = $name;
+
                 continue;
             }
 
@@ -83,14 +79,15 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         }
 
         $propertiesStr = implode("\n", $properties);
+
         return "export interface {$schema->name}{$this->suffix} {\n{$propertiesStr}\n}";
     }
 
     /**
      * Collect referenced class types from a TypeIR.
      *
-     * @param TypeIR $type The type to analyze
-     * @param array<string, array{namespace: string, alias: string, fqcn: string}> $referencedTypes Collection (by reference)
+     * @param  TypeIR  $type  The type to analyze
+     * @param  array<string, array{namespace: string, alias: string, fqcn: string}>  $referencedTypes  Collection (by reference)
      */
     private function collectReferencedTypes(
         TypeIR $type,
@@ -171,6 +168,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         if ($path) {
             return $path . '/' . $fileName . '.ts';
         }
+
         return $fileName . '.ts';
     }
 
@@ -251,6 +249,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                 return $transformer->getFilePath();
             }
         }
+
         return null;
     }
 
@@ -264,6 +263,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         if ($input instanceof SchemaIR && $context === $this->context) {
             return $this->writeSchema($input, '', [], [], []);
         }
+
         return '';
     }
 

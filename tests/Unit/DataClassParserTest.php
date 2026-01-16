@@ -212,7 +212,7 @@ it('parses GameSessionData', function () {
     );
 
     expect($classDefinition->publicProperties)
-        ->toHaveKeys(['id', 'name', 'created_at', 'updated_at']);
+        ->toHaveKeys(['id', 'host_id', 'room_code', 'status', 'quiz_mode_id', 'scoring_rule_id', 'playlist_id', 'max_players', 'started_at', 'ended_at', 'created_at', 'updated_at', 'host', 'quiz_mode', 'scoring_rule', 'playlist', 'participants', 'rounds', 'events', 'final_scores']);
 });
 
 it('parses ProductData', function () {

@@ -898,3 +898,127 @@ it('MultiArtifactFileContentWriter uses multiple writers for each IR type', func
     expect($result)->toContain('export enum Color');
     expect($result)->toContain('export type Color = "red";');
 });
+
+it('writes TypeScript files for GameSessionData with complex properties', function () {
+    // Parse GameSessionData and its dependencies
+    $gameSessionToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\GameSessionData::class);
+
+    $sessionStatusToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\SessionStatus::class);
+
+    // Try to parse dependencies (they might not all exist, so we'll handle gracefully)
+    $tokens = collect([$gameSessionToken, $sessionStatusToken]);
+
+    try {
+        $userDataToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\UserData::class);
+        $tokens->push($userDataToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $quizModeToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\QuizModeData::class);
+        $tokens->push($quizModeToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $scoringRuleToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\ScoringRuleData::class);
+        $tokens->push($scoringRuleToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $playlistToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\PlaylistData::class);
+        $tokens->push($playlistToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    $root = $this->astBuilder->build($tokens);
+
+    // Use transformers for Lazy, Collection, and Date types
+    $transformers = [
+        new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin,
+        new \EffectSchemaGenerator\Plugins\CollectionPlugin,
+        new \EffectSchemaGenerator\Plugins\DatePlugin,
+    ];
+
+    $transformers[] = new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+        new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter($transformers)),
+        $transformers,
+    );
+    $transformers[] = new \EffectSchemaGenerator\Writer\TypeEnumWriter;
+
+    $writer = new FileWriter($root, $transformers, $this->outputDir);
+    $writer->write();
+
+    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    expect(file_exists($filePath))->toBeTrue();
+
+    $content = file_get_contents($filePath);
+
+    $expected = <<<'TS'
+import { ProfileData } from './Fixtures';
+export interface GameSessionData {
+  readonly id: string;
+  readonly host_id: string;
+  readonly room_code: string;
+  readonly status: SessionStatus;
+  readonly quiz_mode_id: string;
+  readonly scoring_rule_id: string;
+  readonly playlist_id: string | null;
+  readonly max_players: number;
+  readonly started_at: Date | null;
+  readonly ended_at: Date | null;
+  readonly created_at: Date | null;
+  readonly updated_at: Date | null;
+  readonly host?: UserData;
+  readonly quiz_mode?: QuizModeData;
+  readonly scoring_rule?: ScoringRuleData;
+  readonly playlist?: PlaylistData | null;
+  readonly participants?: readonly SessionParticipantData[];
+  readonly rounds?: readonly SessionRoundData[];
+  readonly events?: readonly SessionEventData[];
+  readonly final_scores?: readonly SessionFinalScoreData[];
+}
+
+export interface UserData {
+  readonly id: string;
+  readonly name: string;
+  readonly email: string;
+  readonly profile: ProfileData | null;
+  readonly createdAt: Date;
+}
+
+export interface QuizModeData {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface ScoringRuleData {
+  readonly id: string;
+  readonly name: string | null;
+  readonly base_points: number;
+  readonly decay_factor: number | null;
+  readonly max_time_ms: number | null;
+  readonly streak_bonus_enabled: boolean;
+  readonly streak_multiplier: number;
+  readonly created_at: Date | null;
+  readonly updated_at: Date | null;
+  readonly game_sessions: readonly GameSessionData[];
+}
+
+export interface PlaylistData {
+  readonly id: string;
+  readonly name: string;
+}
+
+export type SessionStatus = "WAITING" | "ACTIVE" | "FINISHED" | "CANCELLED";
+TS;
+
+    // The file will have a trailing newline, so add it to expected
+    $expectedWithNewline = $expected."\n";
+    expect($content)->toBe($expectedWithNewline);
+});
