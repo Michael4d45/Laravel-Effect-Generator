@@ -11,7 +11,7 @@ use EffectSchemaGenerator\IR\Types\NullableTypeIR;
 use EffectSchemaGenerator\IR\Types\StringTypeIR;
 use EffectSchemaGenerator\IR\Types\UnionTypeIR;
 use EffectSchemaGenerator\Plugins\DatePlugin;
-use EffectSchemaGenerator\Plugins\LazyPlugin;
+use EffectSchemaGenerator\Plugins\LazyOptionalPlugin;
 use EffectSchemaGenerator\Writer\FileWriter;
 
 beforeEach(function () {
@@ -65,7 +65,7 @@ it('generates exact TypeScript output for SessionEventData with Lazy properties'
     $root->namespaces['App\Data\Models'] = $namespace;
 
     // Create plugins
-    $lazyPlugin = new LazyPlugin();
+    $lazyPlugin = new LazyOptionalPlugin();
     $datePlugin = new DatePlugin();
     $plugins = [$lazyPlugin, $datePlugin];
 

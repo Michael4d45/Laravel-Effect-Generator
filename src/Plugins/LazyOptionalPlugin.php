@@ -13,7 +13,7 @@ use EffectSchemaGenerator\IR\Types\UnknownTypeIR;
 use EffectSchemaGenerator\Writer\Transformer;
 use EffectSchemaGenerator\Writer\WriterContext;
 
-class LazyPlugin implements Transformer
+class LazyOptionalPlugin implements Transformer
 {
     public function canTransform($input, WriterContext $context): bool
     {
@@ -28,12 +28,12 @@ class LazyPlugin implements Transformer
     public function transform($input, WriterContext $context): string
     {
         if ($input instanceof PropertyIR) {
-            // Mark property as optional if it contains Lazy
+            // Mark property as optional if it contains Lazy or Optional
             if ($this->containsLazyAtTopLevel($input->type)) {
                 $input->optional = true;
             }
 
-            // Also remove Lazy from the type structure
+            // Also remove Lazy or Optional from the type structure
             $input->type = $this->removeLazyFromType($input->type);
 
             return ''; // Property preprocessing doesn't return a string
@@ -63,18 +63,32 @@ class LazyPlugin implements Transformer
 
     private function handles(TypeIR $type): bool
     {
-        // Handle standalone Lazy type
+        // Handle standalone Lazy or Optional type
         if ($type instanceof ClassReferenceTypeIR) {
-            return $type->fqcn === 'Spatie\LaravelData\Lazy';
+            return in_array(
+                $type->fqcn,
+                [
+                    'Spatie\LaravelData\Lazy',
+                    'Spatie\LaravelData\Optional',
+                ],
+                true,
+            );
         }
 
-        // Handle union types that contain Lazy (e.g., Collection|Lazy)
+        // Handle union types that contain Lazy or Optional (e.g., Collection|Lazy)
         if ($type instanceof UnionTypeIR) {
             foreach ($type->types as $unionType) {
                 if (
                     !(
                         $unionType instanceof ClassReferenceTypeIR
-                        && $unionType->fqcn === 'Spatie\LaravelData\Lazy'
+                        && in_array(
+                            $unionType->fqcn,
+                            [
+                                'Spatie\LaravelData\Lazy',
+                                'Spatie\LaravelData\Optional',
+                            ],
+                            true,
+                        )
                     )
                 ) {
                     continue;
@@ -89,12 +103,19 @@ class LazyPlugin implements Transformer
 
     private function transformType(TypeIR $type, WriterContext $context): string
     {
-        // Handle standalone Lazy type
+        // Handle standalone Lazy or Optional type
         if (
             $type instanceof ClassReferenceTypeIR
-            && $type->fqcn === 'Spatie\LaravelData\Lazy'
+            && in_array(
+                $type->fqcn,
+                [
+                    'Spatie\LaravelData\Lazy',
+                    'Spatie\LaravelData\Optional',
+                ],
+                true,
+            )
         ) {
-            // If Lazy has type parameters, unwrap them
+            // If Lazy/Optional has type parameters, unwrap them
             if (count($type->typeParameters) > 0) {
                 return $this->transformTypeParam(
                     $type->typeParameters[0],
@@ -105,28 +126,35 @@ class LazyPlugin implements Transformer
             return 'unknown';
         }
 
-        // Handle union types that contain Lazy (e.g., Collection|Lazy)
+        // Handle union types that contain Lazy or Optional (e.g., Collection|Lazy)
         if ($type instanceof UnionTypeIR) {
-            $typesWithoutLazy = [];
+            $typesWithoutLazyOptional = [];
             foreach ($type->types as $unionType) {
-                // Skip Lazy types
+                // Skip Lazy and Optional types
                 if (
                     $unionType instanceof ClassReferenceTypeIR
-                    && $unionType->fqcn === 'Spatie\LaravelData\Lazy'
+                    && in_array(
+                        $unionType->fqcn,
+                        [
+                            'Spatie\LaravelData\Lazy',
+                            'Spatie\LaravelData\Optional',
+                        ],
+                        true,
+                    )
                 ) {
                     continue;
                 }
-                $typesWithoutLazy[] = $this->transformTypeParam(
+                $typesWithoutLazyOptional[] = $this->transformTypeParam(
                     $unionType,
                     $context,
                 );
             }
 
-            if (empty($typesWithoutLazy)) {
+            if (empty($typesWithoutLazyOptional)) {
                 return 'unknown';
             }
 
-            return implode(' | ', $typesWithoutLazy);
+            return implode(' | ', $typesWithoutLazyOptional);
         }
 
         return 'unknown';
@@ -143,66 +171,53 @@ class LazyPlugin implements Transformer
     }
 
     /**
-     * Check if a union type contains Lazy.
-     */
-    private function containsLazyInUnion(UnionTypeIR $type): bool
-    {
-        foreach ($type->types as $unionType) {
-            if (
-                !(
-                    $unionType instanceof ClassReferenceTypeIR
-                    && $unionType->fqcn === 'Spatie\LaravelData\Lazy'
-                )
-            ) {
-                continue;
-            }
-
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Remove Lazy from a union type, returning a new UnionTypeIR or single TypeIR.
+     * Remove Lazy or Optional from a union type, returning a new UnionTypeIR or single TypeIR.
      */
     private function removeLazyFromUnion(UnionTypeIR $type): TypeIR
     {
-        $typesWithoutLazy = [];
+        $typesWithoutLazyOptional = [];
         foreach ($type->types as $unionType) {
             $processed = $this->removeLazyFromType($unionType);
             if (
                 $processed instanceof UnknownTypeIR
                 && !$unionType instanceof UnknownTypeIR
             ) {
-                // If the type became unknown (because it was Lazy), skip it
+                // If the type became unknown (because it was Lazy or Optional), skip it
                 continue;
             }
 
-            $typesWithoutLazy[] = $processed;
+            $typesWithoutLazyOptional[] = $processed;
         }
 
-        if (count($typesWithoutLazy) === 0) {
-            // All types were Lazy, return unknown
+        if (count($typesWithoutLazyOptional) === 0) {
+            // All types were Lazy or Optional, return unknown
             return new UnknownTypeIR;
         }
 
-        if (count($typesWithoutLazy) === 1) {
+        if (count($typesWithoutLazyOptional) === 1) {
             // Only one type remains, return it directly
-            return $typesWithoutLazy[0];
+            return $typesWithoutLazyOptional[0];
         }
 
         // Multiple types remain, return as union
-        return new UnionTypeIR($typesWithoutLazy);
+        return new UnionTypeIR($typesWithoutLazyOptional);
     }
 
     /**
-     * Recursively remove Lazy from a type structure.
+     * Recursively remove Lazy or Optional from a type structure.
      */
     private function removeLazyFromType(TypeIR $type): TypeIR
     {
         if (
             $type instanceof ClassReferenceTypeIR
-            && $type->fqcn === 'Spatie\LaravelData\Lazy'
+            && in_array(
+                $type->fqcn,
+                [
+                    'Spatie\LaravelData\Lazy',
+                    'Spatie\LaravelData\Optional',
+                ],
+                true,
+            )
         ) {
             return new UnknownTypeIR;
         }
@@ -221,7 +236,7 @@ class LazyPlugin implements Transformer
     }
 
     /**
-     * Check if a type contains Lazy at the top level (not nested in generics or structs).
+     * Check if a type contains Lazy or Optional at the top level (not nested in generics or structs).
      * This is used to mark properties as optional.
      */
     private function containsLazyAtTopLevel(TypeIR $type): bool
@@ -232,7 +247,14 @@ class LazyPlugin implements Transformer
                 if (
                     !(
                         $unionType instanceof ClassReferenceTypeIR
-                        && $unionType->fqcn === 'Spatie\LaravelData\Lazy'
+                        && in_array(
+                            $unionType->fqcn,
+                            [
+                                'Spatie\LaravelData\Lazy',
+                                'Spatie\LaravelData\Optional',
+                            ],
+                            true,
+                        )
                     )
                 ) {
                     continue;
@@ -243,12 +265,19 @@ class LazyPlugin implements Transformer
             return false;
         }
 
-        // Check standalone Lazy type at top level
+        // Check standalone Lazy or Optional type at top level
         if ($type instanceof ClassReferenceTypeIR) {
-            return $type->fqcn === 'Spatie\LaravelData\Lazy';
+            return in_array(
+                $type->fqcn,
+                [
+                    'Spatie\LaravelData\Lazy',
+                    'Spatie\LaravelData\Optional',
+                ],
+                true,
+            );
         }
 
-        // Check nullable wrapping Lazy at top level
+        // Check nullable wrapping Lazy or Optional at top level
         if ($type instanceof NullableTypeIR) {
             return $this->containsLazyAtTopLevel($type->innerType);
         }

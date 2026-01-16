@@ -335,7 +335,7 @@ it('marks properties with Lazy types as optional', function () {
     $namespace->schemas[] = $responseSchema;
     $root->namespaces['App\Data'] = $namespace;
 
-    $plugin = new \EffectSchemaGenerator\Plugins\LazyPlugin;
+    $plugin = new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin;
     $writer = new FileWriter($root, [$plugin], $this->outputDir);
     $writer->write();
 
@@ -369,9 +369,9 @@ it('marks properties with union types containing Lazy as optional', function () 
     $namespace->schemas[] = $responseSchema;
     $root->namespaces['App\Data'] = $namespace;
 
-    // Need both LazyPlugin and CollectionPlugin as transformers
+    // Need both LazyOptionalPlugin and CollectionPlugin as transformers
     $transformers = [
-        new \EffectSchemaGenerator\Plugins\LazyPlugin,
+        new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin,
         new \EffectSchemaGenerator\Plugins\CollectionPlugin,
     ];
 
@@ -635,7 +635,7 @@ it('writes TypeScript files for ComplexData with all advanced features', functio
 
     // Use transformers for Lazy, Collection, and Date types
     $transformers = [
-        new \EffectSchemaGenerator\Plugins\LazyPlugin,
+        new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin,
         new \EffectSchemaGenerator\Plugins\CollectionPlugin,
         new \EffectSchemaGenerator\Plugins\DatePlugin,
         new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(

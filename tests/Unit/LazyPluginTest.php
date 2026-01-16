@@ -9,16 +9,14 @@ use EffectSchemaGenerator\IR\RootIR;
 use EffectSchemaGenerator\IR\SchemaIR;
 use EffectSchemaGenerator\IR\Types\ClassReferenceTypeIR;
 use EffectSchemaGenerator\IR\Types\StringTypeIR;
-use EffectSchemaGenerator\IR\Types\ArrayTypeIR;
 use EffectSchemaGenerator\IR\Types\UnionTypeIR;
-use EffectSchemaGenerator\Plugins\LazyPlugin;
+use EffectSchemaGenerator\Plugins\LazyOptionalPlugin;
 use EffectSchemaGenerator\Reflection\DataClassParser;
 use EffectSchemaGenerator\Writer\FileWriter;
-use EffectSchemaGenerator\Writer\Transformer;
 use EffectSchemaGenerator\Writer\WriterContext;
 
 beforeEach(function () {
-    $this->plugin = new LazyPlugin();
+    $this->plugin = new LazyOptionalPlugin();
 });
 
 it('can transform standalone Lazy type in interface context', function () {
@@ -118,8 +116,53 @@ it('transforms union type with only Lazy', function () {
     expect($result)->toBe('unknown');
 });
 
-it('implements Transformer interface', function () {
-    expect($this->plugin)->toBeInstanceOf(\EffectSchemaGenerator\Writer\Transformer::class);
+it('can transform standalone Optional type in interface context', function () {
+    $type = new ClassReferenceTypeIR('Spatie\LaravelData\Optional');
+
+    expect($this->plugin->canTransform($type, WriterContext::INTERFACE))->toBeTrue();
+});
+
+it('can transform union type containing Optional in interface context', function () {
+    $collectionType = new ClassReferenceTypeIR('Illuminate\Support\Collection', 'Collection');
+    $optionalType = new ClassReferenceTypeIR('Spatie\LaravelData\Optional', 'Optional');
+    $unionType = new UnionTypeIR([$collectionType, $optionalType]);
+
+    expect($this->plugin->canTransform($unionType, WriterContext::INTERFACE))->toBeTrue();
+});
+
+it('can preprocess properties containing Optional', function () {
+    $optionalType = new ClassReferenceTypeIR('Spatie\LaravelData\Optional', 'Optional');
+    $property = new PropertyIR('optionalField', $optionalType);
+
+    expect($this->plugin->canTransform($property, WriterContext::INTERFACE))->toBeTrue();
+
+    $this->plugin->transform($property, WriterContext::INTERFACE);
+
+    expect($property->optional)->toBeTrue();
+});
+
+it('transforms Optional with one type parameter in interface context', function () {
+    $innerType = new ClassReferenceTypeIR('App\Data\UserData', 'UserData');
+    $optionalType = new ClassReferenceTypeIR(
+        'Spatie\LaravelData\Optional',
+        'Optional',
+        [$innerType]
+    );
+
+    $result = $this->plugin->transform($optionalType, WriterContext::INTERFACE);
+
+    expect($result)->toBe('UserData');
+});
+
+it('transforms union type with Optional by removing Optional', function () {
+    $collectionType = new ClassReferenceTypeIR('Illuminate\Support\Collection', 'Collection');
+    $optionalType = new ClassReferenceTypeIR('Spatie\LaravelData\Optional', 'Optional');
+    $unionType = new UnionTypeIR([$collectionType, $optionalType]);
+    
+    $result = $this->plugin->transform($unionType, WriterContext::INTERFACE);
+    
+    // Should return just Collection, with Optional removed
+    expect($result)->toBe('Collection');
 });
 
 it('transforms standalone Lazy to exact output', function () {
@@ -169,7 +212,7 @@ it('generates exact TypeScript output for Lazy property in FileWriter', function
     $namespace->schemas[] = $schema;
     $root->namespaces['App\Data'] = $namespace;
     
-    $plugin = new \EffectSchemaGenerator\Plugins\LazyPlugin();
+    $plugin = new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin();
     $outputDir = sys_get_temp_dir() . '/lazy-test-' . uniqid();
     mkdir($outputDir, 0755, true);
     
@@ -211,8 +254,8 @@ it('generates exact TypeScript output for union with Lazy property in FileWriter
     $namespace->schemas[] = $schema;
     $root->namespaces['App\Data'] = $namespace;
     
-    // Need both LazyPlugin and CollectionPlugin
-    $lazyPlugin = new \EffectSchemaGenerator\Plugins\LazyPlugin();
+    // Need both LazyOptionalPlugin and CollectionPlugin
+    $lazyPlugin = new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin();
     $collectionPlugin = new \EffectSchemaGenerator\Plugins\CollectionPlugin();
     $plugins = [$lazyPlugin, $collectionPlugin];
     
@@ -261,8 +304,8 @@ it('generates exact TypeScript output for complex union with Lazy in FileWriter'
     $namespace->schemas[] = $schema;
     $root->namespaces['App\Data'] = $namespace;
     
-    // Need both LazyPlugin and CollectionPlugin
-    $lazyPlugin = new \EffectSchemaGenerator\Plugins\LazyPlugin();
+    // Need both LazyOptionalPlugin and CollectionPlugin
+    $lazyPlugin = new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin();
     $collectionPlugin = new \EffectSchemaGenerator\Plugins\CollectionPlugin();
     $plugins = [$lazyPlugin, $collectionPlugin];
     
@@ -300,8 +343,8 @@ it('generates exact TypeScript output for UserData fixture with Lazy properties'
     $tokens = collect([$classToken]);
     $root = $astBuilder->build($tokens);
     
-    // Use both LazyPlugin and CollectionPlugin since UserData has Collection|Lazy properties
-    $lazyPlugin = new LazyPlugin();
+    // Use both LazyOptionalPlugin and CollectionPlugin since UserData has Collection|Lazy properties
+    $lazyPlugin = new LazyOptionalPlugin();
     $collectionPlugin = new \EffectSchemaGenerator\Plugins\CollectionPlugin();
     $datePlugin = new \EffectSchemaGenerator\Plugins\DatePlugin();
     $plugins = [$lazyPlugin, $collectionPlugin, $datePlugin];

@@ -32,7 +32,7 @@ return [
     'transformers' => [
         // Plugins that transform types
         EffectSchemaGenerator\Plugins\LengthAwarePaginatorPlugin::class,
-        EffectSchemaGenerator\Plugins\LazyPlugin::class,
+        EffectSchemaGenerator\Plugins\LazyOptionalPlugin::class,
         EffectSchemaGenerator\Plugins\DatePlugin::class,
         EffectSchemaGenerator\Plugins\CollectionPlugin::class,
 
