@@ -18,7 +18,7 @@ beforeEach(function () {
         'effect-schema.transformers' => [
             \EffectSchemaGenerator\Plugins\LengthAwarePaginatorPlugin::class,
             \EffectSchemaGenerator\Plugins\DatePlugin::class,
-            \EffectSchemaGenerator\Plugins\LazyPlugin::class,
+            \EffectSchemaGenerator\Plugins\LazyOptionalPlugin::class,
             \EffectSchemaGenerator\Plugins\CollectionPlugin::class,
             \EffectSchemaGenerator\Writer\TypeEnumWriter::class,
             \EffectSchemaGenerator\Writer\EffectSchemaEnumWriter::class,
