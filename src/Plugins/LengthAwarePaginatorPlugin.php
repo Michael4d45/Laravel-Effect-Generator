@@ -93,63 +93,63 @@ class LengthAwarePaginatorPlugin implements Transformer
     public function getFileContent(): null|string
     {
         return <<<'TS'
-        import { Schema as S } from 'effect';
+            import { Schema as S } from 'effect';
 
-        export interface PaginationLinks {
-            readonly url: string | null;
-            readonly label: string;
-            readonly page: number | null;
-            readonly active: boolean;
-        }
+            export interface PaginationLinks {
+                readonly url: string | null;
+                readonly label: string;
+                readonly page: number | null;
+                readonly active: boolean;
+            }
 
-        export const PaginationLinksSchema = S.Struct({
-            url: S.NullOr(S.String),
-            label: S.String,
-            page: S.NullOr(S.Number),
-            active: S.Boolean,
-        });
-
-        export interface PaginationMeta {
-            readonly current_page: number;
-            readonly first_page_url: string;
-            readonly from: number | null;
-            readonly last_page: number;
-            readonly last_page_url: string;
-            readonly next_page_url: string | null;
-            readonly path: string;
-            readonly per_page: number;
-            readonly prev_page_url: string | null;
-            readonly to: number | null;
-            readonly total: number;
-        }
-
-        export const PaginationMetaSchema = S.Struct({
-            current_page: S.Number,
-            first_page_url: S.String,
-            from: S.NullOr(S.Number),
-            last_page: S.Number,
-            last_page_url: S.String,
-            next_page_url: S.NullOr(S.String),
-            path: S.String,
-            per_page: S.Number,
-            prev_page_url: S.NullOr(S.String),
-            to: S.NullOr(S.Number),
-            total: S.Number,
-        });
-
-        export interface LengthAwarePaginator<T extends object> {
-            readonly data: readonly T[];
-            readonly links: readonly PaginationLinks[];
-            readonly meta: PaginationMeta;
-        }
-
-        export const LengthAwarePaginatorSchema = <A extends S.Schema.Any>(item: A) =>
-            S.Struct({
-                data: S.Array(item),
-                links: S.Array(PaginationLinksSchema),
-                meta: PaginationMetaSchema,
+            export const PaginationLinksSchema = S.Struct({
+                url: S.NullOr(S.String),
+                label: S.String,
+                page: S.NullOr(S.Number),
+                active: S.Boolean,
             });
-        TS;
+
+            export interface PaginationMeta {
+                readonly current_page: number;
+                readonly first_page_url: string;
+                readonly from: number | null;
+                readonly last_page: number;
+                readonly last_page_url: string;
+                readonly next_page_url: string | null;
+                readonly path: string;
+                readonly per_page: number;
+                readonly prev_page_url: string | null;
+                readonly to: number | null;
+                readonly total: number;
+            }
+
+            export const PaginationMetaSchema = S.Struct({
+                current_page: S.Number,
+                first_page_url: S.String,
+                from: S.NullOr(S.Number),
+                last_page: S.Number,
+                last_page_url: S.String,
+                next_page_url: S.NullOr(S.String),
+                path: S.String,
+                per_page: S.Number,
+                prev_page_url: S.NullOr(S.String),
+                to: S.NullOr(S.Number),
+                total: S.Number,
+            });
+
+            export interface LengthAwarePaginator<T extends object> {
+                readonly data: readonly T[];
+                readonly links: readonly PaginationLinks[];
+                readonly meta: PaginationMeta;
+            }
+
+            export const LengthAwarePaginatorSchema = <A extends S.Schema.Any>(item: A) =>
+                S.Struct({
+                    data: S.Array(item),
+                    links: S.Array(PaginationLinksSchema),
+                    meta: PaginationMetaSchema,
+                });
+            TS;
     }
 
     public function getFilePath(): null|string
