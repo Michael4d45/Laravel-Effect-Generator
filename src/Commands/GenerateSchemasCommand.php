@@ -38,11 +38,25 @@ class GenerateSchemasCommand extends Command
     {
         $this->info('Generating TypeScript schemas from PHP classes...');
 
-        try {
-            return $this->generateAll();
-        } catch (\Throwable $e) {
-            $this->error("Error: {$e->getMessage()}");
-            return self::FAILURE;
+        $hasRetried = false;
+
+        while (true) {
+            try {
+                return $this->generateAll();
+            } catch (\Throwable $e) {
+                if (!$hasRetried && $this->isFilemtimeStatFailed($e)) {
+                    $hasRetried = true;
+                    $this->warn(
+                        'Detected a stale Surveyor cache entry (filemtime stat failed). ' .
+                        'Clearing cache and retrying once...',
+                    );
+                    $this->call('effect-schema:clear-cache');
+                    continue;
+                }
+
+                $this->error("Error: {$e->getMessage()}");
+                return self::FAILURE;
+            }
         }
     }
 
@@ -131,24 +145,16 @@ class GenerateSchemasCommand extends Command
         }
     }
 
-    // private function displayDefinition($definition): void
-    // {
-    //     if ($definition instanceof \EffectSchemaGenerator\IR\ClassDefinition) {
-    //         $this->line("<comment>Class:</comment> {$definition->fqcn()}");
-    //         foreach ($definition->properties() as $property) {
-    //             $this->line(
-    //                 "  <info>{$property->name()}:</info> {$property
-    //                     ->type()
-    //                     ->toString()}",
-    //             );
-    //         }
-    //     } elseif (
-    //         $definition instanceof \EffectSchemaGenerator\IR\EnumDefinition
-    //     ) {
-    //         $this->line("<comment>Enum:</comment> {$definition->fqcn()}");
-    //         $this->line(
-    //             '  <info>Cases:</info> ' . implode(', ', $definition->cases()),
-    //         );
-    //     }
-    // }
+    private function isFilemtimeStatFailed(\Throwable $e): bool
+    {
+        $current = $e;
+        while ($current !== null) {
+            if (str_contains($current->getMessage(), 'filemtime(): stat failed')) {
+                return true;
+            }
+            $current = $current->getPrevious();
+        }
+
+        return false;
+    }
 }
