@@ -47,8 +47,8 @@ class GenerateSchemasCommand extends Command
                 if (!$hasRetried && $this->isFilemtimeStatFailed($e)) {
                     $hasRetried = true;
                     $this->warn(
-                        'Detected a stale Surveyor cache entry (filemtime stat failed). ' .
-                        'Clearing cache and retrying once...',
+                        'Detected a stale Surveyor cache entry (filemtime stat failed). '
+                        . 'Clearing cache and retrying once...',
                     );
                     $this->call('effect-schema:clear-cache');
                     continue;
@@ -149,7 +149,10 @@ class GenerateSchemasCommand extends Command
     {
         $current = $e;
         while ($current !== null) {
-            if (str_contains($current->getMessage(), 'filemtime(): stat failed')) {
+            if (str_contains(
+                $current->getMessage(),
+                'filemtime(): stat failed',
+            )) {
                 return true;
             }
             $current = $current->getPrevious();
