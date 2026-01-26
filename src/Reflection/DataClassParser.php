@@ -8,8 +8,10 @@ use EffectSchemaGenerator\Tokens\ClassToken;
 use EffectSchemaGenerator\Tokens\PublicPropertyToken;
 use Laravel\Surveyor\Analysis\Scope;
 use Laravel\Surveyor\Analyzed\ClassResult;
+use Laravel\Surveyor\Analyzed\PropertyResult;
 use Laravel\Surveyor\Analyzer\Analyzer;
 use Laravel\Surveyor\Parser\DocBlockParser as SurveyorDocBlockParser;
+use Laravel\Surveyor\Types\StringType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
@@ -83,7 +85,7 @@ class DataClassParser
     }
 
     /**
-     * Extract properties from a ClassResult.
+     * Extract properties from a ClassResult and its parent classes.
      *
      * @param class-string $className
      * @return array<string,PublicPropertyToken>
@@ -95,20 +97,64 @@ class DataClassParser
         $properties = [];
         $reflectionClass = new ReflectionClass($className);
 
-        foreach ($classResult->publicProperties() as $property) {
-            $reflectionProperty = $reflectionClass->getProperty($property->name);
+        // Get all public properties from the class hierarchy
+        $allPublicProperties = $this->getAllPublicProperties($reflectionClass);
+
+        foreach ($allPublicProperties as $propertyName => $reflectionProperty) {
+            // Try to find the property in the Surveyor result first
+            $surveyorProperty = null;
+            foreach ($classResult->publicProperties() as $prop) {
+                if ($prop->name === $propertyName) {
+                    $surveyorProperty = $prop;
+                    break;
+                }
+            }
+
+            // If not found in current class, create a synthetic property for inherited properties
+            if ($surveyorProperty === null) {
+                // Create a synthetic PropertyResult for inherited properties
+                $surveyorProperty = new PropertyResult(
+                    name: $propertyName,
+                    type: new StringType, // Default type, will be overridden by PHPDoc if available
+                    visibility: 'public',
+                );
+            }
 
             $phpDocType = $this->extractPhpDocType(
                 $reflectionProperty,
-                $reflectionClass,
+                $reflectionProperty->getDeclaringClass(), // Use the declaring class for PHPDoc
             );
 
             $propertyToken = new PublicPropertyToken(
-                property: $property,
+                property: $surveyorProperty,
                 phpDocType: $phpDocType,
             );
 
-            $properties[$property->name] = $propertyToken;
+            $properties[$propertyName] = $propertyToken;
+        }
+
+        return $properties;
+    }
+
+    /**
+     * Get all public properties from a class and its parents.
+     *
+     * @return array<string,ReflectionProperty>
+     */
+    private function getAllPublicProperties(ReflectionClass $reflectionClass): array
+    {
+        $properties = [];
+
+        // Get properties from current class and all parents
+        $currentClass = $reflectionClass;
+        while ($currentClass !== false) {
+            foreach ($currentClass->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
+                // Only include properties that are not static and not inherited from base classes we don't want
+                if (!$property->isStatic() && !isset($properties[$property->name])) {
+                    $properties[$property->name] = $property;
+                }
+            }
+            $currentClass = $currentClass->getParentClass();
         }
 
         return $properties;

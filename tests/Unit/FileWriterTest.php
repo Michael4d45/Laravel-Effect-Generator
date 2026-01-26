@@ -1099,3 +1099,76 @@ TS;
     $expectedWithNewline = $expected."\n";
     expect($content)->toBe($expectedWithNewline);
 });
+
+it('writes TypeScript files for IndexRoutesRequest with inherited properties', function () {
+    // Parse IndexRoutesRequest and its dependencies
+    $indexRoutesToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\IndexRoutesRequest::class);
+
+    // Try to parse dependencies (they might not all exist, so we'll handle gracefully)
+    $tokens = collect([$indexRoutesToken]);
+
+    try {
+        $paginationToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\PaginationRequest::class);
+        $tokens->push($paginationToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    $visibilityToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\Enums\Visibility::class);
+    $tokens->push($visibilityToken);
+
+    $sortDirectionToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\SortDirection::class);
+    $tokens->push($sortDirectionToken);
+
+    $root = $this->astBuilder->build($tokens);
+
+    // Use transformers for Lazy, Collection, and Date types
+    $transformers = [
+        new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin,
+        new \EffectSchemaGenerator\Plugins\CollectionPlugin,
+        new \EffectSchemaGenerator\Plugins\DatePlugin,
+    ];
+
+    $transformers[] = new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+        new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter($transformers)),
+        $transformers,
+    );
+    $transformers[] = new \EffectSchemaGenerator\Writer\TypeEnumWriter;
+
+    $writer = new FileWriter($root, $transformers, $this->outputDir);
+    $writer->write();
+
+    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    expect(file_exists($filePath))->toBeTrue();
+
+    $content = file_get_contents($filePath);
+
+    $expected = <<<'TS'
+export interface IndexRoutesRequest {
+  readonly search: string | null;
+  readonly my_routes: boolean;
+  readonly visibility: Visibility | null;
+  readonly activity_type_id: string | null;
+  readonly min_distance: number | null;
+  readonly max_distance: number | null;
+  readonly difficulty: string | null;
+  readonly per_page: number | null;
+  readonly page: number | null;
+  readonly sort_direction: SortDirection | null;
+  readonly sort_by: string | null;
+}
+
+export interface PaginationRequest {
+  readonly per_page: number | null;
+  readonly page: number | null;
+  readonly sort_direction: SortDirection | null;
+  readonly sort_by: string | null;
+}
+
+export type SortDirection = "asc" | "desc";
+TS;
+
+    // The file will have a trailing newline, so add it to expected
+    $expectedWithNewline = $expected."\n";
+    expect($content)->toBe($expectedWithNewline);
+});
