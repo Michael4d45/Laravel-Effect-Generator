@@ -5,6 +5,12 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-01-26
+
+### Fixed
+
+- Fixed PHPDoc `list<T>` type handling to generate proper TypeScript array types instead of treating 'list' as a class reference.
+
 ## [0.1.3] - 2026-01-23
 
 ### Fixed
