@@ -111,6 +111,16 @@ class PhpDocTypeBuilder
                 return new ArrayTypeIR($itemType);
             }
 
+            // Check if it's list<T> - should become ArrayTypeIR
+            if (
+                $typeNode->type instanceof IdentifierTypeNode
+                && $typeNode->type->name === 'list'
+                && count($typeNode->genericTypes) === 1
+            ) {
+                $itemType = $this->buildType($typeNode->genericTypes[0], $uses);
+                return new ArrayTypeIR($itemType);
+            }
+
             // For other generics (e.g., Collection<Type>, DataCollection<Type>), create GenericTypeIR
             $baseTypeName = $typeNode->type instanceof IdentifierTypeNode
                 ? $typeNode->type->name

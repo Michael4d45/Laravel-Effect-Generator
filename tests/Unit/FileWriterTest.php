@@ -1022,3 +1022,80 @@ TS;
     $expectedWithNewline = $expected."\n";
     expect($content)->toBe($expectedWithNewline);
 });
+
+it('writes TypeScript files for CreateRouteRequest with complex properties', function () {
+    // Parse CreateRouteRequest and its dependencies
+    $createRouteToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\CreateRouteRequest::class);
+
+    // Try to parse dependencies (they might not all exist, so we'll handle gracefully)
+    $tokens = collect([$createRouteToken]);
+
+    try {
+        $visibilityToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\Enums\Visibility::class);
+        $tokens->push($visibilityToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $markerModeToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\Enums\RouteMarkerCollectionMode::class);
+        $tokens->push($markerModeToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $waypointToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\RouteWaypointRequest::class);
+        $tokens->push($waypointToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    $root = $this->astBuilder->build($tokens);
+
+    // Use transformers for Lazy, Collection, and Date types
+    $transformers = [
+        new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin,
+        new \EffectSchemaGenerator\Plugins\CollectionPlugin,
+        new \EffectSchemaGenerator\Plugins\DatePlugin,
+    ];
+
+    $transformers[] = new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+        new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter($transformers)),
+        $transformers,
+    );
+    $transformers[] = new \EffectSchemaGenerator\Writer\TypeEnumWriter;
+
+    $writer = new FileWriter($root, $transformers, $this->outputDir);
+    $writer->write();
+
+    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    expect(file_exists($filePath))->toBeTrue();
+
+    $content = file_get_contents($filePath);
+
+    $expected = <<<'TS'
+import { RouteMarkerCollectionMode, Visibility } from './Fixtures/Enums';
+export interface CreateRouteRequest {
+  readonly name: string;
+  readonly description: string | null;
+  readonly activity_type_id: string | null;
+  readonly distance: number | null;
+  readonly elevation_gain: number | null;
+  readonly elevation_loss: number | null;
+  readonly difficulty: string | null;
+  readonly visibility: Visibility;
+  readonly marker_collection_mode: RouteMarkerCollectionMode;
+  readonly waypoints: readonly RouteWaypointRequest[];
+}
+
+export interface RouteWaypointRequest {
+  readonly id: string;
+  readonly name: string;
+}
+TS;
+
+    // The file will have a trailing newline, so add it to expected
+    $expectedWithNewline = $expected."\n";
+    expect($content)->toBe($expectedWithNewline);
+});
