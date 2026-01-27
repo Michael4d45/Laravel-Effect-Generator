@@ -74,6 +74,3 @@ jobs:
 
       - name: Run Mago Linter
         run: ./vendor/bin/mago lint
-
-      - name: Check Mago Formatting
-        run: ./vendor/bin/mago fmt --check
