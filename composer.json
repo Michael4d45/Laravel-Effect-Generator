@@ -62,5 +62,15 @@
             "@lint",
             "@test"
         ]
+    },
+    "archive": {
+        "exclude": [
+            "/tests",
+            "/phpunit.xml",
+            "/mago.toml",
+            "/CONTRIBUTING.md",
+            "/.github",
+            "/.gitignore"
+        ]
     }
 }
