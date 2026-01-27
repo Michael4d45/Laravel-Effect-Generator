@@ -27,7 +27,7 @@
     "require-dev": {
         "pestphp/pest": "^4.0",
         "orchestra/testbench": "^10.0",
-        "carthage-software/mago": "^1.0.3",
+        "carthage-software/mago": "^1.2",
         "michael4d45/coverage-treemap": "^1.0.0"
     },
     "autoload": {

@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
-use EffectSchemaGenerator\Writer\Transformer;
-use EffectSchemaGenerator\Writer\WriterContext;
 
 /**
  * Default implementation of EnumWriter that generates TypeScript enums or types.

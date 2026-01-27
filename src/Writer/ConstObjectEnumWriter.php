@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
-use EffectSchemaGenerator\Writer\Transformer;
-use EffectSchemaGenerator\Writer\WriterContext;
 
 /**
  * Generates TypeScript constant objects for enums (e.g., export const CredentialType = { ApiKey: 'api_key' } as const).

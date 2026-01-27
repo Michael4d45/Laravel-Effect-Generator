@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
-use EffectSchemaGenerator\Writer\Transformer;
-use EffectSchemaGenerator\Writer\WriterContext;
 
 /**
  * Generates TypeScript type aliases for enums (e.g., export type QuestionType = "a" | "b" | "c").
