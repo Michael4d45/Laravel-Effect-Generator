@@ -2,9 +2,10 @@ name: Format and Commit
 
 on:
   push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+    branches: [main]
+
+permissions:
+  contents: write
 
 jobs:
   format:
