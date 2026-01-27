@@ -5,7 +5,13 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.5] - 2026-01-26
+## [0.1.8] - 2026-01-27
+
+### Fixed
+
+- Fixed type inference for trait-based properties by using PHP reflection to extract native property types instead of defaulting to string type.
+
+## [0.1.7] - 2026-01-27
 
 ### Added
 

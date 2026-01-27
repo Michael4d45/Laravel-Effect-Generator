@@ -1172,3 +1172,150 @@ TS;
     $expectedWithNewline = $expected."\n";
     expect($content)->toBe($expectedWithNewline);
 });
+
+it('writes TypeScript files for trait-based requests', function () {
+    // Parse IndexRouteEventsRequest and its trait-based dependencies
+    $token = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\IndexRouteEventsRequest::class);
+
+    // Collect tokens and any referenced enums
+    $tokens = collect([$token]);
+
+    try {
+        $visibilityToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\Enums\Visibility::class);
+        $tokens->push($visibilityToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $sortDirectionToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\SortDirection::class);
+        $tokens->push($sortDirectionToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    $root = $this->astBuilder->build($tokens);
+
+    // Use transformers for Lazy, Collection, and Date types
+    $transformers = [
+        new \EffectSchemaGenerator\Plugins\LazyOptionalPlugin,
+        new \EffectSchemaGenerator\Plugins\CollectionPlugin,
+        new \EffectSchemaGenerator\Plugins\DatePlugin,
+    ];
+
+    $transformers[] = new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+        new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter($transformers)),
+        $transformers,
+    );
+    $transformers[] = new \EffectSchemaGenerator\Writer\TypeEnumWriter;
+
+    $writer = new FileWriter($root, $transformers, $this->outputDir);
+    $writer->write();
+
+    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    expect(file_exists($filePath))->toBeTrue();
+
+    $content = file_get_contents($filePath);
+
+    // Extract just the IndexRouteEventsRequest interface from the file
+    $lines = explode("\n", $content);
+    $inInterface = false;
+    $interfaceLines = [];
+    $braceCount = 0;
+
+    foreach ($lines as $line) {
+        if (str_contains($line, 'export interface IndexRouteEventsRequest')) {
+            $inInterface = true;
+            $interfaceLines[] = $line;
+            $braceCount += substr_count($line, '{') - substr_count($line, '}');
+
+            continue;
+        }
+
+        if ($inInterface) {
+            $interfaceLines[] = $line;
+            $braceCount += substr_count($line, '{') - substr_count($line, '}');
+            if ($braceCount === 0) {
+                break;
+            }
+        }
+    }
+
+    $interfaceContent = implode("\n", $interfaceLines);
+    $interfaceContent = preg_replace('/[ \t]+$/m', '', $interfaceContent);
+    $interfaceContent = rtrim($interfaceContent);
+
+    $expected = <<<'TS'
+export interface IndexRouteEventsRequest {
+  readonly per_page: number | null;
+  readonly columns: readonly string[] | null;
+  readonly page_name: string | null;
+  readonly page: number | null;
+  readonly total: number | null;
+  readonly sort_direction: SortDirection | null;
+  readonly sort_by: string | null;
+  readonly visibility: Visibility | null;
+}
+TS;
+
+    expect($interfaceContent)->toBe($expected);
+});
+
+it('parses IndexRouteEventsRequest token correctly', function () {
+    $token = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\IndexRouteEventsRequest::class);
+
+    expect($token->publicProperties)->toHaveCount(8);
+
+    $propertyNames = collect($token->publicProperties)->map(fn($p) => $p->property->name)->sort()->values()->toArray();
+    expect($propertyNames)->toBe(['columns', 'page', 'page_name', 'per_page', 'sort_by', 'sort_direction', 'total', 'visibility']);
+
+    // Debug what Surveyor gives us for each property
+    foreach ($token->publicProperties as $prop) {
+        $propertyResult = $prop->property;
+        echo "Property: {$propertyResult->name}\n";
+        echo "  Type: " . get_class($propertyResult->type) . " - " . $propertyResult->type->toString() . "\n";
+        echo "  Is Nullable: " . ($propertyResult->type->isNullable() ? 'true' : 'false') . "\n";
+        if ($prop->phpDocType) {
+            echo "  PHPDoc: " . get_class($prop->phpDocType) . "\n";
+        } else {
+            echo "  PHPDoc: none\n";
+        }
+        echo "\n";
+    }
+});
+
+it('builds AST for IndexRouteEventsRequest correctly', function () {
+    $token = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\IndexRouteEventsRequest::class);
+
+    $tokens = collect([$token]);
+
+    try {
+        $visibilityToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\Enums\Visibility::class);
+        $tokens->push($visibilityToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    try {
+        $sortDirectionToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\SortDirection::class);
+        $tokens->push($sortDirectionToken);
+    } catch (\Throwable $e) {
+        // Skip if not available
+    }
+
+    $root = $this->astBuilder->build($tokens);
+
+    $namespace = $root->namespaces['EffectSchemaGenerator\Tests\Fixtures'];
+    $schema = collect($namespace->schemas)->first(fn($s) => $s->name === 'IndexRouteEventsRequest');
+
+    expect($schema)->not->toBeNull();
+    expect($schema->properties)->toHaveCount(8);
+
+    // Check types of all properties
+    $properties = collect($schema->properties);
+
+    // Now with reflection-based type inference, we should have proper nullable types
+    $perPageProp = $properties->first(fn($p) => $p->name === 'per_page');
+    expect($perPageProp->type::class)->toBe(\EffectSchemaGenerator\IR\Types\NullableTypeIR::class);
+    expect($perPageProp->type->innerType::class)->toBe(\EffectSchemaGenerator\IR\Types\IntTypeIR::class);
+});

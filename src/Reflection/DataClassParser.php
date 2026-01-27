@@ -11,7 +11,14 @@ use Laravel\Surveyor\Analyzed\ClassResult;
 use Laravel\Surveyor\Analyzed\PropertyResult;
 use Laravel\Surveyor\Analyzer\Analyzer;
 use Laravel\Surveyor\Parser\DocBlockParser as SurveyorDocBlockParser;
+use Laravel\Surveyor\Types\BoolType;
+use Laravel\Surveyor\Types\ClassType;
+use Laravel\Surveyor\Types\FloatType;
+use Laravel\Surveyor\Types\IntType;
+use Laravel\Surveyor\Types\MixedType;
+use Laravel\Surveyor\Types\NullType;
 use Laravel\Surveyor\Types\StringType;
+use Laravel\Surveyor\Types\UnionType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
@@ -104,18 +111,28 @@ class DataClassParser
             // Try to find the property in the Surveyor result first
             $surveyorProperty = null;
             foreach ($classResult->publicProperties() as $prop) {
-                if ($prop->name === $propertyName) {
-                    $surveyorProperty = $prop;
-                    break;
+                if ($prop->name !== $propertyName) {
+                    continue;
                 }
+
+                $surveyorProperty = $prop;
+                break;
             }
 
             // If not found in current class, create a synthetic property for inherited properties
             if ($surveyorProperty === null) {
+                // Try to get the native type from reflection for better type inference
+                $nativeType = $reflectionProperty->getType();
+                $surveyorType = new \Laravel\Surveyor\Types\StringType; // Default fallback
+
+                if ($nativeType !== null) {
+                    $surveyorType = $this->convertReflectionTypeToSurveyorType($nativeType);
+                }
+
                 // Create a synthetic PropertyResult for inherited properties
                 $surveyorProperty = new PropertyResult(
                     name: $propertyName,
-                    type: new StringType, // Default type, will be overridden by PHPDoc if available
+                    type: $surveyorType,
                     visibility: 'public',
                 );
             }
@@ -151,11 +168,15 @@ class DataClassParser
             foreach ($currentClass->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
                 // Only include properties that are not static and not inherited from base classes we don't want
                 if (
-                    !$property->isStatic()
-                    && !isset($properties[$property->name])
+                    !(
+                        !$property->isStatic()
+                        && !isset($properties[$property->name])
+                    )
                 ) {
-                    $properties[$property->name] = $property;
+                    continue;
                 }
+
+                $properties[$property->name] = $property;
             }
             $currentClass = $currentClass->getParentClass();
         }
@@ -282,5 +303,74 @@ class DataClassParser
         }
 
         return null;
+    }
+
+    /**
+     * Convert a PHP ReflectionType to a Surveyor Type.
+     */
+    private function convertReflectionTypeToSurveyorType(\ReflectionType $reflectionType): \Laravel\Surveyor\Types\Contracts\Type
+    {
+        // Handle union types (PHP 8.0+)
+        if ($reflectionType instanceof \ReflectionUnionType) {
+            $types = [];
+            $hasNull = false;
+            
+            foreach ($reflectionType->getTypes() as $type) {
+                if ($type instanceof \ReflectionNamedType && $type->getName() === 'null') {
+                    $hasNull = true;
+                } else {
+                    $types[] = $this->convertSingleReflectionTypeToSurveyorType($type);
+                }
+            }
+            
+            if (count($types) === 1) {
+                $innerType = $types[0];
+                if ($hasNull) {
+                    // Make the single type nullable
+                    $innerType = $innerType->nullable();
+                }
+                return $innerType;
+            }
+            
+            if (count($types) > 1) {
+                $unionType = new UnionType($types);
+                if ($hasNull) {
+                    $unionType = $unionType->nullable();
+                }
+                return $unionType;
+            }
+            
+            // Only null types? This shouldn't happen for properties
+            return new \Laravel\Surveyor\Types\MixedType;
+        }
+
+        // Handle nullable types (PHP 7.1+)
+        if ($reflectionType instanceof \ReflectionNamedType && $reflectionType->allowsNull()) {
+            $innerType = $this->convertSingleReflectionTypeToSurveyorType($reflectionType);
+            return $innerType->nullable();
+        }
+
+        return $this->convertSingleReflectionTypeToSurveyorType($reflectionType);
+    }
+
+    /**
+     * Convert a single ReflectionType to a Surveyor Type.
+     */
+    private function convertSingleReflectionTypeToSurveyorType(\ReflectionType $reflectionType): \Laravel\Surveyor\Types\Contracts\Type
+    {
+        if (!$reflectionType instanceof \ReflectionNamedType) {
+            return new StringType; // Fallback
+        }
+
+        $typeName = $reflectionType->getName();
+
+        return match ($typeName) {
+            'int' => new \Laravel\Surveyor\Types\IntType,
+            'float' => new \Laravel\Surveyor\Types\FloatType,
+            'string' => new \Laravel\Surveyor\Types\StringType,
+            'bool' => new \Laravel\Surveyor\Types\BoolType,
+            'array' => new \Laravel\Surveyor\Types\MixedType,
+            default => new \Laravel\Surveyor\Types\ClassType($typeName), // For classes/enums
+        };
     }
 }
