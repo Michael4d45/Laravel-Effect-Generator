@@ -150,7 +150,10 @@ class DataClassParser
         while ($currentClass !== false) {
             foreach ($currentClass->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
                 // Only include properties that are not static and not inherited from base classes we don't want
-                if (!$property->isStatic() && !isset($properties[$property->name])) {
+                if (
+                    !$property->isStatic()
+                    && !isset($properties[$property->name])
+                ) {
                     $properties[$property->name] = $property;
                 }
             }
