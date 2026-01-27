@@ -1,0 +1,6 @@
+tests/ export-ignore
+phpunit.xml export-ignore
+mago.toml export-ignore
+CONTRIBUTING.md export-ignore
+.github/ export-ignore
+.gitignore export-ignore
