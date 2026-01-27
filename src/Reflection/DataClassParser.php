@@ -126,7 +126,8 @@ class DataClassParser
                 $surveyorType = new \Laravel\Surveyor\Types\StringType; // Default fallback
 
                 if ($nativeType !== null) {
-                    $surveyorType = $this->convertReflectionTypeToSurveyorType($nativeType);
+                    $surveyorType =
+                        $this->convertReflectionTypeToSurveyorType($nativeType);
                 }
 
                 // Create a synthetic PropertyResult for inherited properties
@@ -314,15 +315,19 @@ class DataClassParser
         if ($reflectionType instanceof \ReflectionUnionType) {
             $types = [];
             $hasNull = false;
-            
+
             foreach ($reflectionType->getTypes() as $type) {
-                if ($type instanceof \ReflectionNamedType && $type->getName() === 'null') {
+                if (
+                    $type instanceof \ReflectionNamedType
+                    && $type->getName() === 'null'
+                ) {
                     $hasNull = true;
                 } else {
-                    $types[] = $this->convertSingleReflectionTypeToSurveyorType($type);
+                    $types[] =
+                        $this->convertSingleReflectionTypeToSurveyorType($type);
                 }
             }
-            
+
             if (count($types) === 1) {
                 $innerType = $types[0];
                 if ($hasNull) {
@@ -331,7 +336,7 @@ class DataClassParser
                 }
                 return $innerType;
             }
-            
+
             if (count($types) > 1) {
                 $unionType = new UnionType($types);
                 if ($hasNull) {
@@ -339,18 +344,26 @@ class DataClassParser
                 }
                 return $unionType;
             }
-            
+
             // Only null types? This shouldn't happen for properties
             return new \Laravel\Surveyor\Types\MixedType;
         }
 
         // Handle nullable types (PHP 7.1+)
-        if ($reflectionType instanceof \ReflectionNamedType && $reflectionType->allowsNull()) {
-            $innerType = $this->convertSingleReflectionTypeToSurveyorType($reflectionType);
+        if (
+            $reflectionType instanceof \ReflectionNamedType
+            && $reflectionType->allowsNull()
+        ) {
+            $innerType =
+                $this->convertSingleReflectionTypeToSurveyorType(
+                    $reflectionType,
+                );
             return $innerType->nullable();
         }
 
-        return $this->convertSingleReflectionTypeToSurveyorType($reflectionType);
+        return $this->convertSingleReflectionTypeToSurveyorType(
+            $reflectionType,
+        );
     }
 
     /**
