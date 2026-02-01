@@ -44,10 +44,10 @@ class GenerateSchemasCommand extends Command
             try {
                 return $this->generateAll();
             } catch (\Throwable $e) {
-                if (!$hasRetried && $this->isFilemtimeStatFailed($e)) {
+                if (!$hasRetried) {
                     $hasRetried = true;
                     $this->warn(
-                        'Detected a stale Surveyor cache entry (filemtime stat failed). '
+                        'An error occurred during schema generation. '
                         . 'Clearing cache and retrying once...',
                     );
                     $this->call('effect-schema:clear-cache');
@@ -143,21 +143,5 @@ class GenerateSchemasCommand extends Command
         foreach ($enums as $enum) {
             $this->displayDefinition($enum);
         }
-    }
-
-    private function isFilemtimeStatFailed(\Throwable $e): bool
-    {
-        $current = $e;
-        while ($current !== null) {
-            if (str_contains(
-                $current->getMessage(),
-                'filemtime(): stat failed',
-            )) {
-                return true;
-            }
-            $current = $current->getPrevious();
-        }
-
-        return false;
     }
 }
