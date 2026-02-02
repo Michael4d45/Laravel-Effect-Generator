@@ -95,17 +95,17 @@ class LengthAwarePaginatorPlugin implements Transformer
         return <<<'TS'
             import { Schema as S } from 'effect';
 
-            export interface PaginationLinks {
+            export interface PaginationLink {
                 readonly url: string | null;
                 readonly label: string;
-                readonly page: number | null;
+                readonly page?: number | null;
                 readonly active: boolean;
             }
 
-            export const PaginationLinksSchema = S.Struct({
+            export const PaginationLinkSchema = S.Struct({
                 url: S.NullOr(S.String),
                 label: S.String,
-                page: S.NullOr(S.Number),
+                page: S.optional(S.NullOr(S.Number)),
                 active: S.Boolean,
             });
 
@@ -139,14 +139,14 @@ class LengthAwarePaginatorPlugin implements Transformer
 
             export interface LengthAwarePaginator<T extends object> {
                 readonly data: readonly T[];
-                readonly links: readonly PaginationLinks[];
+                readonly links: readonly PaginationLink[];
                 readonly meta: PaginationMeta;
             }
 
             export const LengthAwarePaginatorSchema = <A extends S.Schema.Any>(item: A) =>
                 S.Struct({
                     data: S.Array(item),
-                    links: S.Array(PaginationLinksSchema),
+                    links: S.Array(PaginationLinkSchema),
                     meta: PaginationMetaSchema,
                 });
             TS;

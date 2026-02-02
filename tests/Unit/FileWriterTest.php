@@ -201,7 +201,7 @@ it('writes transformer-provided files', function () {
     $content = file_get_contents($transformerFilePath);
     expect($content)->toContain('import { Schema as S } from \'effect\';');
     expect($content)->toContain('export interface LengthAwarePaginator<T extends object>');
-    expect($content)->toContain('export interface PaginationLinks');
+    expect($content)->toContain('export interface PaginationLink');
     expect($content)->toContain('export interface PaginationMeta');
     expect($content)->toContain('export const LengthAwarePaginatorSchema');
 });

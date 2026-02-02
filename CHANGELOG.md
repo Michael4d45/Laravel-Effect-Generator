@@ -5,6 +5,13 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-02-02
+
+### Changed
+
+- **Breaking:** Updated LengthAwarePaginatorPlugin to use `PaginationLink` (singular) instead of `PaginationLinks` (plural) for consistency with Laravel's naming.
+- Made the `page` property optional in `PaginationLink` interface to better reflect Laravel's pagination structure.
+
 ## [0.1.9] - 2026-02-01
 
 ### Changed
