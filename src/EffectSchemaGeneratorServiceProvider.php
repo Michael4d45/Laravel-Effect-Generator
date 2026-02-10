@@ -26,8 +26,7 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/Config/config.php', 'effect-schema');
 
         $this->app->singleton(ClassDiscoverer::class, function ($app) {
-            $paths = array_map('strval', config()->array('effect-schema.paths', [
-            ]));
+            $paths = array_map('strval', config()->array('effect-schema.paths', []));
 
             return new ClassDiscoverer($paths);
         });
@@ -46,8 +45,7 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
 
         // Bind PropertyWriter to DefaultPropertyWriter with lazy TypeScriptWriter
         $this->app->singleton(PropertyWriter::class, function ($app) {
-            return new DefaultPropertyWriter(typeWriter: new TypeScriptWriter([
-            ]));
+            return new DefaultPropertyWriter(typeWriter: new TypeScriptWriter([]));
         });
 
         $this->app->singleton(GenerateSchemasCommand::class, function ($app) {

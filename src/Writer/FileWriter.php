@@ -137,7 +137,7 @@ class FileWriter
 
         foreach ($this->ast->namespaces as $namespace) {
             $filePath = $this->namespaceToFilePath($namespace->namespace);
-            if (!isset($groups[$filePath])) {
+            if (!array_key_exists($filePath, $groups)) {
                 $groups[$filePath] = [];
             }
             $groups[$filePath][] = $namespace;

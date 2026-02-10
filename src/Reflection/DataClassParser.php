@@ -16,7 +16,7 @@ use Laravel\Surveyor\Types\ClassType;
 use Laravel\Surveyor\Types\FloatType;
 use Laravel\Surveyor\Types\IntType;
 use Laravel\Surveyor\Types\MixedType;
-use Laravel\Surveyor\Types\NullType;
+
 use Laravel\Surveyor\Types\StringType;
 use Laravel\Surveyor\Types\UnionType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
@@ -171,7 +171,7 @@ class DataClassParser
                 if (
                     !(
                         !$property->isStatic()
-                        && !isset($properties[$property->name])
+                        && !array_key_exists($property->name, $properties)
                     )
                 ) {
                     continue;
@@ -248,7 +248,7 @@ class DataClassParser
      */
     private function parseDocBlock(string $docBlock): null|PhpDocNode
     {
-        if (isset($this->parsedCache[$docBlock])) {
+        if (array_key_exists($docBlock, $this->parsedCache)) {
             return $this->parsedCache[$docBlock];
         }
 

@@ -46,7 +46,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         foreach ($referencedTypes as $fqcn => $info) {
             $name = $info['alias'];
             // Skip if it's already in this file
-            if (isset($localSchemas[$name]) || isset($localEnums[$name])) {
+            if (array_key_exists($name, $localSchemas) || array_key_exists($name, $localEnums)) {
                 continue;
             }
 
@@ -57,7 +57,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                     $currentFilePath,
                     $transformerFilePath,
                 );
-                if (!isset($imports[$relativePath])) {
+                if (!array_key_exists($relativePath, $imports)) {
                     $imports[$relativePath] = [];
                 }
                 $imports[$relativePath][$name] = $name;
@@ -72,7 +72,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                 $targetFilePath,
             );
 
-            if (!isset($imports[$relativePath])) {
+            if (!array_key_exists($relativePath, $imports)) {
                 $imports[$relativePath] = [];
             }
             $imports[$relativePath][$name] = $name;

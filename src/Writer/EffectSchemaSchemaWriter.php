@@ -66,7 +66,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         foreach ($referencedTypes as $fqcn => $info) {
             $name = $info['alias'];
             // Skip if it's already in this file
-            if (isset($localSchemas[$name]) || isset($localEnums[$name])) {
+            if (array_key_exists($name, $localSchemas) || array_key_exists($name, $localEnums)) {
                 continue;
             }
 
@@ -77,7 +77,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
                     $currentFilePath,
                     $transformerFilePath,
                 );
-                if (!isset($imports[$relativePath])) {
+                if (!array_key_exists($relativePath, $imports)) {
                     $imports[$relativePath] = [];
                 }
                 // Import the Schema, the base type, and the encoded type
@@ -94,7 +94,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
                 $targetFilePath,
             );
 
-            if (!isset($imports[$relativePath])) {
+            if (!array_key_exists($relativePath, $imports)) {
                 $imports[$relativePath] = [];
             }
             // Import the Schema, the base type, and the encoded type

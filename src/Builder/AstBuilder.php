@@ -55,7 +55,7 @@ class AstBuilder
                 );
             }
 
-            if (!isset($root->namespaces[$token->namespace])) {
+            if (!array_key_exists($token->namespace, $root->namespaces)) {
                 $namespace = new NamespaceIR($token->namespace);
             } else {
                 $namespace = $root->namespaces[$token->namespace];
