@@ -1319,3 +1319,72 @@ it('builds AST for IndexRouteEventsRequest correctly', function () {
     expect($perPageProp->type::class)->toBe(\EffectSchemaGenerator\IR\Types\NullableTypeIR::class);
     expect($perPageProp->type->innerType::class)->toBe(\EffectSchemaGenerator\IR\Types\IntTypeIR::class);
 });
+
+it('generates exact TypeScript output for TrackData with array of MarkerData', function () {
+    // Parse TrackData and MarkerData
+    $trackToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\TrackData::class);
+    $markerToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\MarkerData::class);
+
+    $root = $this->astBuilder->build(collect([$trackToken, $markerToken]));
+
+    // Use MultiArtifactFileContentWriter to generate interface, encoded interface, and schema
+    $transformers = [
+        new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+            new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter([], \EffectSchemaGenerator\Writer\WriterContext::INTERFACE)),
+            [],
+            '',
+            \EffectSchemaGenerator\Writer\WriterContext::INTERFACE,
+        ),
+        new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+            new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter([], \EffectSchemaGenerator\Writer\WriterContext::ENCODED_INTERFACE)),
+            [],
+            'Encoded',
+            \EffectSchemaGenerator\Writer\WriterContext::ENCODED_INTERFACE,
+        ),
+        new \EffectSchemaGenerator\Writer\EffectSchemaSchemaWriter([]),
+        new \EffectSchemaGenerator\Writer\TypeEnumWriter,
+    ];
+
+    $fileContentWriter = new \EffectSchemaGenerator\Writer\MultiArtifactFileContentWriter(
+        $transformers,
+        new \EffectSchemaGenerator\Writer\DefaultImportWriter,
+    );
+
+    $result = $fileContentWriter->writeFileContent('EffectSchemaGenerator/Tests/Fixtures.ts', [$root->namespaces['EffectSchemaGenerator\Tests\Fixtures']]);
+
+    $expected = <<<'TS'
+import { Schema as S } from 'effect';
+
+export interface TrackData {
+  readonly name: string;
+  readonly markers: readonly MarkerData[];
+}
+
+export interface TrackDataEncoded {
+  readonly name: string;
+  readonly markers: readonly MarkerDataEncoded[];
+}
+
+export const TrackDataSchema = S.Struct({
+  name: S.String,
+  markers: S.Array(S.suspend((): S.Schema<MarkerData, MarkerDataEncoded> => MarkerDataSchema))
+});
+
+export interface MarkerData {
+  readonly id: string;
+  readonly name: string;
+}
+
+export interface MarkerDataEncoded {
+  readonly id: string;
+  readonly name: string;
+}
+
+export const MarkerDataSchema = S.Struct({
+  id: S.String,
+  name: S.String
+});
+TS;
+
+    expect($result)->toBe($expected);
+});

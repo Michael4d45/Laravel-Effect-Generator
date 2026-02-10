@@ -146,6 +146,7 @@ class TypeTransformer
                 $prefix = $readonly
                 && (
                     $context === WriterContext::INTERFACE
+                    || $context === WriterContext::ENCODED_INTERFACE
                     || $context === WriterContext::ENUM
                 )
                     ? 'readonly '
