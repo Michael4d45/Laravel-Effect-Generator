@@ -22,7 +22,11 @@ interface Transformer
      * @param array $attributes Array of attributes from the class/property
      * @return bool True if this transformer can handle it
      */
-    public function canTransform($input, WriterContext $context, array $attributes = []): bool;
+    public function canTransform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): bool;
 
     /**
      * Transform the input to a string representation for the given context.
@@ -32,7 +36,11 @@ interface Transformer
      * @param array $attributes Array of attributes from the class/property
      * @return string The transformed output
      */
-    public function transform($input, WriterContext $context, array $attributes = []): string;
+    public function transform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): string;
 
     /**
      * Check if this transformer provides additional file content.

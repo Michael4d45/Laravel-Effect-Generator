@@ -232,7 +232,11 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
             }
 
             $tempType = new ClassReferenceTypeIR($fqcn);
-            if ($transformer->canTransform($tempType, WriterContext::SCHEMA, [])) {
+            if ($transformer->canTransform(
+                $tempType,
+                WriterContext::SCHEMA,
+                [],
+            )) {
                 return $transformer->getFilePath();
             }
         }
@@ -309,13 +313,19 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         return $relativePath;
     }
 
-    public function canTransform($input, WriterContext $context, array $attributes = []): bool
-    {
+    public function canTransform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): bool {
         return $input instanceof SchemaIR && $context === WriterContext::SCHEMA;
     }
 
-    public function transform($input, WriterContext $context, array $attributes = []): string
-    {
+    public function transform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): string {
         if ($input instanceof SchemaIR && $context === WriterContext::SCHEMA) {
             return $this->writeSchema($input, '', [], [], []);
         }

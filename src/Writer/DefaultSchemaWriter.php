@@ -258,13 +258,19 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         return null;
     }
 
-    public function canTransform($input, WriterContext $context, array $attributes = []): bool
-    {
+    public function canTransform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): bool {
         return $input instanceof SchemaIR && $context === $this->context;
     }
 
-    public function transform($input, WriterContext $context, array $attributes = []): string
-    {
+    public function transform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): string {
         if ($input instanceof SchemaIR && $context === $this->context) {
             return $this->writeSchema($input, '', [], [], []);
         }

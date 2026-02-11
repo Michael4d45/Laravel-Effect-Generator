@@ -31,13 +31,19 @@ class ConstObjectEnumWriter implements EnumWriter, Transformer
         return "export const {$enum->name} = {\n{$entriesStr}\n} as const;";
     }
 
-    public function canTransform($input, WriterContext $context, array $attributes = []): bool
-    {
+    public function canTransform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): bool {
         return $input instanceof EnumIR && $context === WriterContext::ENUM;
     }
 
-    public function transform($input, WriterContext $context, array $attributes = []): string
-    {
+    public function transform(
+        $input,
+        WriterContext $context,
+        array $attributes = [],
+    ): string {
         if ($input instanceof EnumIR && $context === WriterContext::ENUM) {
             return $this->writeEnum($input);
         }
