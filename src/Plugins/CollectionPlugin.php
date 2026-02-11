@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace EffectSchemaGenerator\Plugins;
 
+use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\IR\PropertyIR;
+use EffectSchemaGenerator\IR\SchemaIR;
 use EffectSchemaGenerator\IR\TypeIR;
 use EffectSchemaGenerator\IR\Types\ClassReferenceTypeIR;
 use EffectSchemaGenerator\Writer\Transformer;
@@ -13,7 +16,7 @@ use EffectSchemaGenerator\Writer\WriterContext;
 class CollectionPlugin implements Transformer
 {
     public function canTransform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): bool {
@@ -21,7 +24,7 @@ class CollectionPlugin implements Transformer
     }
 
     public function transform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): string {

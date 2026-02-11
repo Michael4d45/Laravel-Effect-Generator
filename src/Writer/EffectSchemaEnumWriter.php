@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\IR\PropertyIR;
+use EffectSchemaGenerator\IR\SchemaIR;
+use EffectSchemaGenerator\IR\TypeIR;
 
 /**
  * Generates Effect Schema definitions for enums (e.g., export const QuestionTypeSchema = S.Union(...)).
@@ -28,7 +31,7 @@ class EffectSchemaEnumWriter implements EnumWriter, Transformer
     }
 
     public function canTransform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): bool {
@@ -36,7 +39,7 @@ class EffectSchemaEnumWriter implements EnumWriter, Transformer
     }
 
     public function transform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): string {

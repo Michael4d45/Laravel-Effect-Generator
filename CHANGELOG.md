@@ -5,6 +5,12 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.8] - 2026-02-11
+
+### Changed
+
+- Updated Transformer interface and all implementations to use proper union types (TypeIR|SchemaIR|EnumIR|PropertyIR) instead of mixed parameters, eliminating the need for PHPStan ignore annotations in plugin code.
+
 ## [0.2.7] - 2026-02-11
 
 ### Added

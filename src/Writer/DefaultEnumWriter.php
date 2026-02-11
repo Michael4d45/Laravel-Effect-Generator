@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\IR\PropertyIR;
+use EffectSchemaGenerator\IR\SchemaIR;
+use EffectSchemaGenerator\IR\TypeIR;
 
 /**
  * Default implementation of EnumWriter that generates TypeScript enums or types.
@@ -68,7 +71,7 @@ class DefaultEnumWriter implements EnumWriter, Transformer
     }
 
     public function canTransform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): bool {
@@ -76,7 +79,7 @@ class DefaultEnumWriter implements EnumWriter, Transformer
     }
 
     public function transform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): string {

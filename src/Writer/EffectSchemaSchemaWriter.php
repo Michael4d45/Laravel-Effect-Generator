@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace EffectSchemaGenerator\Writer;
 
+use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\IR\PropertyIR;
 use EffectSchemaGenerator\IR\SchemaIR;
 use EffectSchemaGenerator\IR\TypeIR;
 use EffectSchemaGenerator\IR\Types\ArrayTypeIR;
@@ -314,7 +316,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
     }
 
     public function canTransform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): bool {
@@ -322,7 +324,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
     }
 
     public function transform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): string {

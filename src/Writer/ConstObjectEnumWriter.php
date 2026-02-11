@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\IR\PropertyIR;
+use EffectSchemaGenerator\IR\SchemaIR;
+use EffectSchemaGenerator\IR\TypeIR;
 
 /**
  * Generates TypeScript constant objects for enums (e.g., export const CredentialType = { ApiKey: 'api_key' } as const).
@@ -32,7 +35,7 @@ class ConstObjectEnumWriter implements EnumWriter, Transformer
     }
 
     public function canTransform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): bool {
@@ -40,7 +43,7 @@ class ConstObjectEnumWriter implements EnumWriter, Transformer
     }
 
     public function transform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): string {

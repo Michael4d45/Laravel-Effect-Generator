@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace EffectSchemaGenerator\Writer;
 
 use EffectSchemaGenerator\IR\EnumIR;
+use EffectSchemaGenerator\IR\PropertyIR;
 use EffectSchemaGenerator\IR\SchemaIR;
 use EffectSchemaGenerator\IR\TypeIR;
 
@@ -17,13 +18,13 @@ interface Transformer
     /**
      * Check if this transformer can handle the given type in the given context.
      *
-     * @param TypeIR|SchemaIR|EnumIR $input The input to check
+     * @param TypeIR|SchemaIR|EnumIR|PropertyIR $input The input to check
      * @param WriterContext $context The output context
      * @param array $attributes Attribute context (e.g., ['class' => AttributeIR[], 'property' => AttributeIR[]])
      * @return bool True if this transformer can handle it
      */
     public function canTransform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): bool;
@@ -31,13 +32,13 @@ interface Transformer
     /**
      * Transform the input to a string representation for the given context.
      *
-     * @param TypeIR|SchemaIR|EnumIR $input The input to transform
+     * @param TypeIR|SchemaIR|EnumIR|PropertyIR $input The input to transform
      * @param WriterContext $context The output context
      * @param array $attributes Attribute context (e.g., ['class' => AttributeIR[], 'property' => AttributeIR[]])
      * @return string The transformed output
      */
     public function transform(
-        $input,
+        TypeIR|SchemaIR|EnumIR|PropertyIR $input,
         WriterContext $context,
         array $attributes = [],
     ): string;
