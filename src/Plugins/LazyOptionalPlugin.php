@@ -322,7 +322,8 @@ class LazyOptionalPlugin implements Transformer
         foreach ($property->attributes as $attribute) {
             if (
                 $attribute->name === 'Spatie\\LaravelData\\Attributes\\Optional'
-                || $attribute->name === 'EffectSchemaGenerator\\Attributes\\Optional'
+                || $attribute->name
+                    === 'EffectSchemaGenerator\\Attributes\\Optional'
             ) {
                 return true;
             }
