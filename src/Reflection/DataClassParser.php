@@ -16,7 +16,6 @@ use Laravel\Surveyor\Types\ClassType;
 use Laravel\Surveyor\Types\FloatType;
 use Laravel\Surveyor\Types\IntType;
 use Laravel\Surveyor\Types\MixedType;
-
 use Laravel\Surveyor\Types\StringType;
 use Laravel\Surveyor\Types\UnionType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocNode;
