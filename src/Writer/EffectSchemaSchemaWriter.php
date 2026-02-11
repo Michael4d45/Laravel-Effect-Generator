@@ -66,7 +66,10 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         foreach ($referencedTypes as $fqcn => $info) {
             $name = $info['alias'];
             // Skip if it's already in this file
-            if (array_key_exists($name, $localSchemas) || array_key_exists($name, $localEnums)) {
+            if (
+                array_key_exists($name, $localSchemas)
+                || array_key_exists($name, $localEnums)
+            ) {
                 continue;
             }
 
