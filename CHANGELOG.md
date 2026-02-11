@@ -5,7 +5,15 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.4] - 2026-02-11
+## [0.2.5] - 2026-02-11
+
+### Added
+
+- Custom `#[Optional]` attribute (`EffectSchemaGenerator\Attributes\Optional`) that works independently of Spatie Laravel Data's Optional attribute, allowing users to decouple from external dependencies while maintaining the same functionality.
+
+### Changed
+
+- Enhanced LazyOptionalPlugin to support both Spatie's `#[Optional]` attribute and the new custom `#[Optional]` attribute.
 
 ### Added
 
