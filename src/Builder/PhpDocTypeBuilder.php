@@ -218,13 +218,14 @@ class PhpDocTypeBuilder
         string $name,
         array $uses,
     ): ClassReferenceTypeIR {
+        $trimmedName = ltrim($name, '\\');
         foreach ($uses as $alias => $use) {
             $parts = explode('\\', $alias);
             $className = end($parts);
-            if ($className === $name) {
-                return new ClassReferenceTypeIR($use, $name);
+            if ($className === $trimmedName) {
+                return new ClassReferenceTypeIR($use, $trimmedName);
             }
         }
-        return new ClassReferenceTypeIR($name);
+        return new ClassReferenceTypeIR($trimmedName);
     }
 }

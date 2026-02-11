@@ -81,6 +81,7 @@ class DataClassParser
 
         $properties = $this->extractPublicProperties($classResult, $className);
 
+        
         /** @var array<string,string> $uses */
         $uses = $this->collectUses($className, $scope->uses());
         return new ClassToken(
