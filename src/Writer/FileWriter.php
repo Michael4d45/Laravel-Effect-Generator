@@ -169,5 +169,4 @@ class FileWriter
         }
         return $fileName . '.ts';
     }
-
 }

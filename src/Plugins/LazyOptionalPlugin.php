@@ -325,8 +325,10 @@ class LazyOptionalPlugin implements Transformer
         $propertyAttributes = $attributes['property'] ?? $property->attributes;
         $classAttributes = $attributes['class'] ?? [];
 
-        return $this->containsOptionalAttribute($propertyAttributes)
-            || $this->containsOptionalAttribute($classAttributes);
+        return (
+            $this->containsOptionalAttribute($propertyAttributes)
+            || $this->containsOptionalAttribute($classAttributes)
+        );
     }
 
     /**
