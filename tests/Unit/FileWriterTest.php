@@ -1188,7 +1188,7 @@ it('writes TypeScript files for trait-based requests', function () {
     }
 
     try {
-        $sortDirectionToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\SortDirection::class);
+        $sortDirectionToken = $this->enumParser->parse(\App\Enums\SortDirection::class);
         $tokens->push($sortDirectionToken);
     } catch (\Throwable $e) {
         // Skip if not available
@@ -1217,57 +1217,33 @@ it('writes TypeScript files for trait-based requests', function () {
 
     $content = file_get_contents($filePath);
 
-    // Extract just the IndexRouteEventsRequest interface from the file
-    $lines = explode("\n", $content);
-    $inInterface = false;
-    $interfaceLines = [];
-    $braceCount = 0;
-
-    foreach ($lines as $line) {
-        if (str_contains($line, 'export interface IndexRouteEventsRequest')) {
-            $inInterface = true;
-            $interfaceLines[] = $line;
-            $braceCount += substr_count($line, '{') - substr_count($line, '}');
-
-            continue;
-        }
-
-        if ($inInterface) {
-            $interfaceLines[] = $line;
-            $braceCount += substr_count($line, '{') - substr_count($line, '}');
-            if ($braceCount === 0) {
-                break;
-            }
-        }
-    }
-
-    $interfaceContent = implode("\n", $interfaceLines);
-    $interfaceContent = preg_replace('/[ \t]+$/m', '', $interfaceContent);
-    $interfaceContent = rtrim($interfaceContent);
-
+    // Define expected content including imports and all generated types
     $expected = <<<'TS'
+import { SortDirection } from '../../App/Enums';
+import { Visibility } from './Fixtures/Enums';
 export interface IndexRouteEventsRequest {
   readonly per_page: number | null;
   readonly columns: readonly string[] | null;
   readonly page_name: string | null;
   readonly page: number | null;
-  readonly total: number | null;
-  readonly sort_direction: SortDirection | null;
-  readonly sort_by: string | null;
+  readonly sort_directions: readonly SortDirection[] | null;
+  readonly sort_by: readonly string[] | null;
   readonly visibility: Visibility | null;
 }
 TS;
 
-    expect($interfaceContent)->toBe($expected);
+    // The file will have a trailing newline, so add it to expected
+    $expectedWithNewline = $expected . "\n";
+    expect($content)->toBe($expectedWithNewline);
 });
 
 it('parses IndexRouteEventsRequest token correctly', function () {
     $token = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\IndexRouteEventsRequest::class);
 
-    expect($token->publicProperties)->toHaveCount(8);
+    expect($token->publicProperties)->toHaveCount(7);
 
     $propertyNames = collect($token->publicProperties)->map(fn($p) => $p->property->name)->sort()->values()->toArray();
-    expect($propertyNames)->toBe(['columns', 'page', 'page_name', 'per_page', 'sort_by', 'sort_direction', 'total', 'visibility']);
+    expect($propertyNames)->toBe(['columns', 'page', 'page_name', 'per_page', 'sort_by', 'sort_directions', 'visibility']);
 
     // Debug what Surveyor gives us for each property
     foreach ($token->publicProperties as $prop) {
@@ -1309,7 +1285,7 @@ it('builds AST for IndexRouteEventsRequest correctly', function () {
     $schema = collect($namespace->schemas)->first(fn($s) => $s->name === 'IndexRouteEventsRequest');
 
     expect($schema)->not->toBeNull();
-    expect($schema->properties)->toHaveCount(8);
+    expect($schema->properties)->toHaveCount(7);
 
     // Check types of all properties
     $properties = collect($schema->properties);

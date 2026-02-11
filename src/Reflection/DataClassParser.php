@@ -82,13 +82,83 @@ class DataClassParser
         $properties = $this->extractPublicProperties($classResult, $className);
 
         /** @var array<string,string> $uses */
-        $uses = $scope->uses();
+        $uses = $this->collectUses($className, $scope->uses());
         return new ClassToken(
             namespace: $classResult->namespace(),
             fqcn: $classResult->name(),
             uses: $uses,
             publicProperties: $properties,
         );
+    }
+
+    /**
+     * Collect use statements from the class, its parents, and its traits.
+     *
+     * @param array<string,string> $classUses
+     * @return array<string,string>
+     */
+    private function collectUses(string $className, array $classUses): array
+    {
+        $uses = $classUses;
+
+        $reflection = new ReflectionClass($className);
+
+        $parents = [];
+        $current = $reflection->getParentClass();
+        while ($current !== false) {
+            $parents[] = $current;
+            $current = $current->getParentClass();
+        }
+
+        $traits = $this->collectTraits($reflection);
+
+        foreach (array_merge($parents, $traits) as $related) {
+            $relatedUses = $this->analyzeUses($related->getName());
+            if ($relatedUses !== []) {
+                $uses = $uses + $relatedUses;
+            }
+        }
+
+        return $uses;
+    }
+
+    /**
+     * @return array<int,ReflectionClass>
+     */
+    private function collectTraits(ReflectionClass $reflection): array
+    {
+        $traits = [];
+        $stack = $reflection->getTraits();
+
+        while ($stack !== []) {
+            /** @var ReflectionClass $trait */
+            $trait = array_pop($stack);
+            if (array_key_exists($trait->getName(), $traits)) {
+                continue;
+            }
+
+            $traits[$trait->getName()] = $trait;
+
+            foreach ($trait->getTraits() as $nestedTrait) {
+                $stack[] = $nestedTrait;
+            }
+        }
+
+        return array_values($traits);
+    }
+
+    /**
+     * @return array<string,string>
+     */
+    private function analyzeUses(string $className): array
+    {
+        try {
+            $analysis = $this->analyzer->analyzeClass($className);
+            $scope = $analysis->analyzed();
+            return $scope instanceof Scope ? $scope->uses() : [];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     /**
