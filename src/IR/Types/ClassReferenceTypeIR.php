@@ -10,12 +10,11 @@ class ClassReferenceTypeIR extends TypeIR
 {
     public string $namespace = '';
 
-    public bool $isEnum = false;
-
     public function __construct(
         public string $fqcn,
         public string $alias = '',
         public array $typeParameters = [],
+        public bool $isEnum = false,
     ) {
         $parts = explode('\\', $fqcn);
         if ($alias === '') {
@@ -24,6 +23,7 @@ class ClassReferenceTypeIR extends TypeIR
         if (count($parts) > 1) {
             $this->namespace = implode('\\', array_slice($parts, 0, -1));
         }
+        $this->isEnum = $isEnum;
     }
 
     public function toArray(): array

@@ -15,21 +15,21 @@ use EffectSchemaGenerator\Writer\WriterContext;
 
 class LazyOptionalPlugin implements Transformer
 {
-    public function canTransform($input, WriterContext $context): bool
+    public function canTransform($input, WriterContext $context, array $attributes = []): bool
     {
         if ($input instanceof PropertyIR) {
-            // Handle property preprocessing
-            return $this->containsLazyAtTopLevel($input->type);
+            // Handle property preprocessing - check for Lazy/Optional types or Optional attributes
+            return $this->containsLazyAtTopLevel($input->type) || $this->hasOptionalAttribute($input);
         }
 
         return $input instanceof TypeIR && $this->handles($input);
     }
 
-    public function transform($input, WriterContext $context): string
+    public function transform($input, WriterContext $context, array $attributes = []): string
     {
         if ($input instanceof PropertyIR) {
-            // Mark property as optional if it contains Lazy or Optional
-            if ($this->containsLazyAtTopLevel($input->type)) {
+            // Mark property as optional if it contains Lazy/Optional types or has Optional attribute
+            if ($this->containsLazyAtTopLevel($input->type) || $this->hasOptionalAttribute($input)) {
                 $input->optional = true;
             }
 
@@ -299,6 +299,20 @@ class LazyOptionalPlugin implements Transformer
         }
 
         // Don't check nested types (generics, structs) - those don't make the property optional
+        return false;
+    }
+
+    /**
+     * Check if a property has the Optional attribute.
+     */
+    private function hasOptionalAttribute(PropertyIR $property): bool
+    {
+        foreach ($property->attributes as $attribute) {
+            if ($attribute->name === 'Spatie\\LaravelData\\Attributes\\Optional') {
+                return true;
+            }
+        }
+
         return false;
     }
 }

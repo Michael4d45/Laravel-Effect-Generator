@@ -19,18 +19,20 @@ interface Transformer
      *
      * @param TypeIR|SchemaIR|EnumIR $input The input to check
      * @param WriterContext $context The output context
+     * @param array $attributes Array of attributes from the class/property
      * @return bool True if this transformer can handle it
      */
-    public function canTransform($input, WriterContext $context): bool;
+    public function canTransform($input, WriterContext $context, array $attributes = []): bool;
 
     /**
      * Transform the input to a string representation for the given context.
      *
      * @param TypeIR|SchemaIR|EnumIR $input The input to transform
      * @param WriterContext $context The output context
+     * @param array $attributes Array of attributes from the class/property
      * @return string The transformed output
      */
-    public function transform($input, WriterContext $context): string;
+    public function transform($input, WriterContext $context, array $attributes = []): string;
 
     /**
      * Check if this transformer provides additional file content.

@@ -30,29 +30,15 @@ class TypeScriptWriter
     {
         // Try transformers first
         foreach ($this->transformers as $transformer) {
-            if (!$transformer->canTransform($type, $this->context)) {
+            if (!$transformer->canTransform($type, $this->context, [])) {
                 continue;
             }
 
-            return $transformer->transform($type, $this->context);
+            return $transformer->transform($type, $this->context, []);
         }
 
         // Fall back to default handling
         return $this->writeTypeDefault($type);
-    }
-
-    /**
-     * Preprocess a property using transformers.
-     */
-    public function preprocessProperty(PropertyIR $property): void
-    {
-        foreach ($this->transformers as $transformer) {
-            if (!$transformer->canTransform($property, $this->context)) {
-                continue;
-            }
-
-            $transformer->transform($property, $this->context);
-        }
     }
 
     /**

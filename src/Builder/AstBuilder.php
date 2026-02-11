@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EffectSchemaGenerator\Builder;
 
+use EffectSchemaGenerator\IR\AttributeIR;
 use EffectSchemaGenerator\IR\EnumIR;
 use EffectSchemaGenerator\IR\NamespaceIR;
 use EffectSchemaGenerator\IR\PropertyIR;
@@ -87,12 +88,15 @@ class AstBuilder
                     $property->property->name,
                     $type,
                     $nullable,
+                    false, // optional - will be set by plugins later
+                    $this->convertAttributes($property->attributes),
                 );
             }
             $root->namespaces[$class->namespace]->schemas[] = new SchemaIR(
                 $class->name,
                 $class->uses,
                 $properties,
+                $this->convertAttributes($class->attributes),
             );
         }
 
@@ -148,5 +152,21 @@ class AstBuilder
         }
 
         return new UnknownTypeIR;
+    }
+
+    /**
+     * @param \ReflectionAttribute[] $reflectionAttributes
+     * @return AttributeIR[]
+     */
+    private function convertAttributes(array $reflectionAttributes): array
+    {
+        $attributes = [];
+        foreach ($reflectionAttributes as $reflectionAttribute) {
+            $attributes[] = new AttributeIR(
+                $reflectionAttribute->getName(),
+                $reflectionAttribute->getArguments(),
+            );
+        }
+        return $attributes;
     }
 }

@@ -84,7 +84,9 @@ class SurveyorTypeBuilder
 
         // Handle class types
         if ($type instanceof ClassType) {
-            return new ClassReferenceTypeIR($type->resolved());
+            $fqcn = $type->resolved();
+            $isEnum = enum_exists($fqcn);
+            return new ClassReferenceTypeIR($fqcn, '', [], $isEnum);
         }
 
         // Unknown type

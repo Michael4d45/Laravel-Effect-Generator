@@ -103,6 +103,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                 if (!$transformer->canTransform(
                     $type,
                     WriterContext::INTERFACE,
+                    [], // No attributes for type references
                 )) {
                     continue;
                 }
@@ -248,6 +249,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
             if ($transformer->canTransform(
                 $tempType,
                 WriterContext::INTERFACE,
+                [], // No attributes for type references
             )) {
                 return $transformer->getFilePath();
             }
@@ -256,12 +258,12 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         return null;
     }
 
-    public function canTransform($input, WriterContext $context): bool
+    public function canTransform($input, WriterContext $context, array $attributes = []): bool
     {
         return $input instanceof SchemaIR && $context === $this->context;
     }
 
-    public function transform($input, WriterContext $context): string
+    public function transform($input, WriterContext $context, array $attributes = []): string
     {
         if ($input instanceof SchemaIR && $context === $this->context) {
             return $this->writeSchema($input, '', [], [], []);

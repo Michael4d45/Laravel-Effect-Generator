@@ -12,12 +12,12 @@ use EffectSchemaGenerator\Writer\WriterContext;
 
 class CollectionPlugin implements Transformer
 {
-    public function canTransform($input, WriterContext $context): bool
+    public function canTransform($input, WriterContext $context, array $attributes = []): bool
     {
         return $input instanceof TypeIR && $this->handles($input);
     }
 
-    public function transform($input, WriterContext $context): string
+    public function transform($input, WriterContext $context, array $attributes = []): string
     {
         if (
             !$input instanceof TypeIR || !$input instanceof ClassReferenceTypeIR

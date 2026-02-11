@@ -188,6 +188,52 @@ it('builds RootIR with UserData properties', function () {
     expect($propertyNames)->toContain('email');
 });
 
+it('transfers class attributes from tokens to IR', function () {
+    $classToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\OptionalAttributeData::class);
+    $tokens = collect([$classToken]);
+
+    $root = $this->astBuilder->build($tokens);
+
+    $schema = $root->namespaces['EffectSchemaGenerator\Tests\Fixtures']->schemas[0];
+    expect($schema->classAttributes)->toBeArray();
+    expect($schema->classAttributes)->toHaveCount(1);
+    expect($schema->classAttributes[0]->name)->toBe('Spatie\LaravelData\Attributes\Optional');
+});
+
+it('transfers property attributes from tokens to IR', function () {
+    $classToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\OptionalAttributeData::class);
+    $tokens = collect([$classToken]);
+
+    $root = $this->astBuilder->build($tokens);
+
+    $schema = $root->namespaces['EffectSchemaGenerator\Tests\Fixtures']->schemas[0];
+
+    $optionalProperty = findProperty($schema->properties, 'optionalProperty');
+    expect($optionalProperty->attributes)->toBeArray();
+    expect($optionalProperty->attributes)->toHaveCount(1);
+    expect($optionalProperty->attributes[0]->name)->toBe('Spatie\LaravelData\Attributes\Optional');
+
+    $requiredProperty = findProperty($schema->properties, 'requiredProperty');
+    expect($requiredProperty->attributes)->toBeArray();
+    expect($requiredProperty->attributes)->toBeEmpty();
+});
+
+it('transfers trait property attributes from tokens to IR', function () {
+    $classToken = $this->dataParser->parse(\EffectSchemaGenerator\Tests\Fixtures\ClassWithOptionalTrait::class);
+    $tokens = collect([$classToken]);
+
+    $root = $this->astBuilder->build($tokens);
+
+    $schema = $root->namespaces['EffectSchemaGenerator\Tests\Fixtures']->schemas[0];
+
+    $traitOptional = findProperty($schema->properties, 'traitOptionalProperty');
+    expect($traitOptional->attributes)->toHaveCount(1);
+    expect($traitOptional->attributes[0]->name)->toBe('Spatie\LaravelData\Attributes\Optional');
+
+    $traitRequired = findProperty($schema->properties, 'traitRequiredProperty');
+    expect($traitRequired->attributes)->toBeEmpty();
+});
+
 it('builds RootIR with enum cases', function () {
     $enumToken = $this->enumParser->parse(\EffectSchemaGenerator\Tests\Fixtures\Color::class);
     $tokens = collect([$enumToken]);
