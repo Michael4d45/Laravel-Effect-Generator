@@ -9,8 +9,12 @@ use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 
 class PublicPropertyToken
 {
+    /**
+     * @param \ReflectionAttribute[] $attributes
+     */
     public function __construct(
         public PropertyResult $property,
         public null|TypeNode $phpDocType = null,
+        public array $attributes = [],
     ) {}
 }

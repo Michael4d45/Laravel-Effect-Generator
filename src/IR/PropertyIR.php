@@ -6,11 +6,15 @@ namespace EffectSchemaGenerator\IR;
 
 class PropertyIR
 {
+    /**
+     * @param list<AttributeIR> $attributes
+     */
     public function __construct(
         public string $name,
         public TypeIR $type,
         public bool $nullable = false,
         public bool $optional = false,
+        public array $attributes = [],
     ) {}
 
     public function toArray(): array
@@ -18,6 +22,10 @@ class PropertyIR
         $result = [
             'name' => $this->name,
             'type' => $this->type->toArray(),
+            'attributes' => array_map(
+                fn(AttributeIR $attribute) => $attribute->toArray(),
+                $this->attributes,
+            ),
         ];
 
         if ($this->nullable) {

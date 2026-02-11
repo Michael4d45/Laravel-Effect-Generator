@@ -14,12 +14,14 @@ class ClassToken
     /**
      * @param array<string,string> $uses Uses statements for this class
      * @param PublicPropertyToken[] $publicProperties Properties of this class
+     * @param \ReflectionAttribute[] $attributes Attributes on this class
      */
     public function __construct(
         public string $namespace,
         public string $fqcn,
         public array $uses,
         public array $publicProperties,
+        public array $attributes = [],
     ) {
         $parts = explode('\\', $fqcn);
         $this->name = end($parts);

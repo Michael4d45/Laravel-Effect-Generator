@@ -57,9 +57,6 @@ class DataClassParser
         );
     }
 
-    /**
-     * Parse a Spatie Data class into a ClassToken.
-     */
     public function parse(string $className): ClassToken
     {
         /** @var \Laravel\Surveyor\Analyzer\Analyzer $analyzer */
@@ -78,6 +75,8 @@ class DataClassParser
 
         $this->surveyorDocParser->setScope($scope);
 
+        $reflectionClass = new ReflectionClass($className);
+
         $properties = $this->extractPublicProperties($classResult, $className);
 
         /** @var array<string,string> $uses */
@@ -87,6 +86,7 @@ class DataClassParser
             fqcn: $classResult->name(),
             uses: $uses,
             publicProperties: $properties,
+            attributes: $reflectionClass->getAttributes(),
         );
     }
 
@@ -215,6 +215,7 @@ class DataClassParser
             $propertyToken = new PublicPropertyToken(
                 property: $surveyorProperty,
                 phpDocType: $phpDocType,
+                attributes: $reflectionProperty->getAttributes(),
             );
 
             $properties[$propertyName] = $propertyToken;
