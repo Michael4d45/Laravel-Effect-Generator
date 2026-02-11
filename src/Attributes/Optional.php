@@ -12,6 +12,7 @@ use Attribute;
  * This attribute can be used instead of Spatie Laravel Data's Optional attribute
  * to decouple from external dependencies.
  *
+ * When used on a property:
  * @example
  * ```php
  * use EffectSchemaGenerator\Attributes\Optional;
@@ -25,15 +26,26 @@ use Attribute;
  * }
  * ```
  *
+ * When used on a class, all properties become optional by default:
+ * @example
+ * ```php
+ * #[Optional]
+ * class UserData extends Data
+ * {
+ *     public string $name;        // Will be optional
+ *     public string $nickname;    // Will be optional
+ * }
+ * ```
+ *
  * This will generate:
  * ```typescript
  * interface UserData {
- *   readonly name: string;
+ *   readonly name?: string;
  *   readonly nickname?: string;
  * }
  * ```
  */
-#[Attribute(Attribute::TARGET_PROPERTY)]
+#[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
 class Optional
 {
     public function __construct()

@@ -75,7 +75,15 @@ class FileWriter
     {
         foreach ($this->ast->namespaces as $namespace) {
             foreach ($namespace->schemas as $schema) {
+                // Check if the class has Optional attribute - if so, mark all properties as optional
+                $hasClassOptional = $this->hasClassOptionalAttribute($schema);
+
                 foreach ($schema->properties as $property) {
+                    // Mark property as optional if class has Optional attribute
+                    if ($hasClassOptional) {
+                        $property->optional = true;
+                    }
+
                     // Let transformers preprocess properties (e.g., mark as optional)
                     foreach ($this->transformers as $transformer) {
                         if (
@@ -162,5 +170,22 @@ class FileWriter
             return $path . '/' . $fileName . '.ts';
         }
         return $fileName . '.ts';
+    }
+
+    /**
+     * Check if a schema has the Optional attribute at the class level.
+     */
+    private function hasClassOptionalAttribute(\EffectSchemaGenerator\IR\SchemaIR $schema): bool
+    {
+        foreach ($schema->classAttributes as $attribute) {
+            if (
+                $attribute->name === 'Spatie\\LaravelData\\Attributes\\Optional'
+                || $attribute->name === 'EffectSchemaGenerator\\Attributes\\Optional'
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
