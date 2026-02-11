@@ -423,3 +423,56 @@ it('generates exact TypeScript output for UserData fixture with Lazy properties'
         }
     }
 });
+
+it('makes all properties optional when Optional attribute is on class', function () {
+    $root = new RootIR();
+    $namespace = new NamespaceIR('App\Data');
+
+    // Create a schema with the Optional attribute on the class
+    $classAttributes = [
+        new \EffectSchemaGenerator\IR\AttributeIR('EffectSchemaGenerator\\Attributes\\Optional'),
+    ];
+
+    $schema = new SchemaIR(
+        'OptionalClassData',
+        [], // uses
+        [
+            new PropertyIR('name', new StringTypeIR()),
+            new PropertyIR('age', new \EffectSchemaGenerator\IR\Types\IntTypeIR()),
+            new PropertyIR('email', new StringTypeIR()),
+        ],
+        $classAttributes, // Class-level attributes
+    );
+
+    $namespace->schemas[] = $schema;
+    $root->namespaces['App\Data'] = $namespace;
+
+    $plugin = new LazyOptionalPlugin();
+    $outputDir = sys_get_temp_dir() . '/optional-class-test-' . uniqid();
+    mkdir($outputDir, 0755, true);
+
+    try {
+        $writer = new FileWriter($root, [$plugin], $outputDir);
+        $writer->write();
+
+        $content = file_get_contents($outputDir . '/App/Data.ts');
+
+        // Verify the interface exists
+        expect($content)->toContain('export interface OptionalClassData');
+
+        // Verify all properties are optional (have ?)
+        expect($content)->toContain('readonly name?: string;');
+        expect($content)->toContain('readonly age?: number;');
+        expect($content)->toContain('readonly email?: string;');
+
+        // Verify the schema also has optional properties
+        expect($content)->toContain('export const OptionalClassDataSchema = S.Struct');
+        expect($content)->toContain('name: S.optional(S.String)');
+        expect($content)->toContain('age: S.optional(S.Number)');
+        expect($content)->toContain('email: S.optional(S.String)');
+    } finally {
+        if (is_dir($outputDir)) {
+            deleteDirectory($outputDir);
+        }
+    }
+});

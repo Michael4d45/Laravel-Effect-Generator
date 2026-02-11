@@ -17,9 +17,9 @@ interface Transformer
     /**
      * Check if this transformer can handle the given type in the given context.
      *
-     * @param TypeIR|SchemaIR|EnumIR $input The input to check
-     * @param WriterContext $context The output context
-     * @param array $attributes Array of attributes from the class/property
+    * @param TypeIR|SchemaIR|EnumIR $input The input to check
+    * @param WriterContext $context The output context
+    * @param array $attributes Attribute context (e.g., ['class' => AttributeIR[], 'property' => AttributeIR[]])
      * @return bool True if this transformer can handle it
      */
     public function canTransform(
@@ -31,9 +31,9 @@ interface Transformer
     /**
      * Transform the input to a string representation for the given context.
      *
-     * @param TypeIR|SchemaIR|EnumIR $input The input to transform
-     * @param WriterContext $context The output context
-     * @param array $attributes Array of attributes from the class/property
+    * @param TypeIR|SchemaIR|EnumIR $input The input to transform
+    * @param WriterContext $context The output context
+    * @param array $attributes Attribute context (e.g., ['class' => AttributeIR[], 'property' => AttributeIR[]])
      * @return string The transformed output
      */
     public function transform(

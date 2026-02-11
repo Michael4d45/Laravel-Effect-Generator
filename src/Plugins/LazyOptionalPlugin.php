@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace EffectSchemaGenerator\Plugins;
 
+use EffectSchemaGenerator\IR\AttributeIR;
 use EffectSchemaGenerator\IR\PropertyIR;
 use EffectSchemaGenerator\IR\TypeIR;
 use EffectSchemaGenerator\IR\Types\ClassReferenceTypeIR;
@@ -24,7 +25,7 @@ class LazyOptionalPlugin implements Transformer
             // Handle property preprocessing - check for Lazy/Optional types or Optional attributes
             return (
                 $this->containsLazyAtTopLevel($input->type)
-                || $this->hasOptionalAttribute($input)
+                || $this->hasOptionalAttribute($input, $attributes)
             );
         }
 
@@ -40,7 +41,7 @@ class LazyOptionalPlugin implements Transformer
             // Mark property as optional if it contains Lazy/Optional types or has Optional attribute
             if (
                 $this->containsLazyAtTopLevel($input->type)
-                || $this->hasOptionalAttribute($input)
+                || $this->hasOptionalAttribute($input, $attributes)
             ) {
                 $input->optional = true;
             }
@@ -317,9 +318,25 @@ class LazyOptionalPlugin implements Transformer
     /**
      * Check if a property has the Optional attribute.
      */
-    private function hasOptionalAttribute(PropertyIR $property): bool
+    private function hasOptionalAttribute(
+        PropertyIR $property,
+        array $attributes = [],
+    ): bool {
+        $propertyAttributes = $attributes['property'] ?? $property->attributes;
+        $classAttributes = $attributes['class'] ?? [];
+
+        return $this->containsOptionalAttribute($propertyAttributes)
+            || $this->containsOptionalAttribute($classAttributes);
+    }
+
+    /**
+     * Check if any attribute in the list is Optional.
+     *
+     * @param list<AttributeIR> $attributes
+     */
+    private function containsOptionalAttribute(array $attributes): bool
     {
-        foreach ($property->attributes as $attribute) {
+        foreach ($attributes as $attribute) {
             if (
                 $attribute->name === 'Spatie\\LaravelData\\Attributes\\Optional'
                 || $attribute->name
