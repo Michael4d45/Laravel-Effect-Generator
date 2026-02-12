@@ -34,7 +34,7 @@ it('transforms ClassReferenceTypeIR', function () {
     $type = new ClassReferenceTypeIR('App\Data\UserData', 'UserData');
     
     expect(TypeTransformer::toTypeScript($type))->toBe('UserData');
-    expect(TypeTransformer::toEffectSchema($type))->toBe('S.suspend((): S.Schema<UserData, UserDataEncoded> => UserDataSchema)');
+    expect(TypeTransformer::toEffectSchema($type))->toBe('S.suspend(() => UserDataSchema)');
 });
 
 it('transforms ArrayTypeIR', function () {

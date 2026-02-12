@@ -118,7 +118,7 @@ it('handles nullable properties', function () {
 
     $content = file_get_contents($this->outputDir.'/App/Data.ts');
     expect($content)->toContain('readonly id: string | null;');
-    expect($content)->toContain('readonly name?: string;');
+    expect($content)->toContain('readonly name?: string | undefined;');
 });
 
 it('generates imports for referenced types', function () {
@@ -341,7 +341,7 @@ it('marks properties with Lazy types as optional', function () {
 
     $content = file_get_contents($this->outputDir.'/App/Data.ts');
     // Lazy property should have ? after the name
-    expect($content)->toContain('readonly user?: unknown;');
+    expect($content)->toContain('readonly user?: unknown | undefined;');
     // Regular property should not have ?
     expect($content)->toContain('readonly name: string;');
 });
@@ -455,7 +455,7 @@ it('generates exact TypeScript output with nullable and optional properties', fu
     $expected = <<<'TS'
 export interface UserData {
   readonly id: string | null;
-  readonly name?: string;
+  readonly name?: string | undefined;
   readonly email: string;
 }
 TS;
@@ -809,7 +809,7 @@ it('EffectSchemaSchemaWriter generates effect schema structs', function () {
     $imports = [];
     $result = $writer->writeSchema($schema, 'test.ts', [], [], $imports);
 
-    expect($result)->toContain('export const UserDataSchema = S.Struct({');
+    expect($result)->toContain('export const UserDataSchema: S.Schema<UserData, UserDataEncoded> = S.Struct({');
     expect($result)->toContain('id: S.String');
     expect($result)->toContain('name: S.String');
     expect($result)->toContain('});');
@@ -835,7 +835,7 @@ it('EffectSchemaSchemaWriter does not suspend enum references', function () {
     // Enum should not be suspended
     expect($result)->toContain('status: StatusSchema');
     // Class should still be suspended
-    expect($result)->toContain('other: S.suspend((): S.Schema<OtherData, OtherDataEncoded> => OtherDataSchema)');
+    expect($result)->toContain('other: S.suspend(() => OtherDataSchema)');
 });
 
 it('EffectSchemaSchemaWriter does not suspend nullable enum references', function () {
@@ -892,7 +892,7 @@ it('MultiArtifactFileContentWriter uses multiple writers for each IR type', func
 
     // Should contain both interface and schema for UserData
     expect($result)->toContain('export interface UserData');
-    expect($result)->toContain('export const UserDataSchema = S.Struct');
+    expect($result)->toContain('export const UserDataSchema: S.Schema<UserData, UserDataEncoded> = S.Struct');
 
     // Should contain both native enum and type alias for Color
     expect($result)->toContain('export enum Color');
@@ -974,14 +974,14 @@ export interface GameSessionData {
   readonly ended_at: Date | null;
   readonly created_at: Date | null;
   readonly updated_at: Date | null;
-  readonly host?: UserData;
-  readonly quiz_mode?: QuizModeData;
-  readonly scoring_rule?: ScoringRuleData;
-  readonly playlist?: PlaylistData | null;
-  readonly participants?: readonly SessionParticipantData[];
-  readonly rounds?: readonly SessionRoundData[];
-  readonly events?: readonly SessionEventData[];
-  readonly final_scores?: readonly SessionFinalScoreData[];
+  readonly host?: UserData | undefined;
+  readonly quiz_mode?: QuizModeData | undefined;
+  readonly scoring_rule?: ScoringRuleData | undefined;
+  readonly playlist?: PlaylistData | null | undefined;
+  readonly participants?: readonly SessionParticipantData[] | undefined;
+  readonly rounds?: readonly SessionRoundData[] | undefined;
+  readonly events?: readonly SessionEventData[] | undefined;
+  readonly final_scores?: readonly SessionFinalScoreData[] | undefined;
 }
 
 export interface UserData {
@@ -1341,9 +1341,9 @@ export interface TrackDataEncoded {
   readonly markers: readonly MarkerDataEncoded[];
 }
 
-export const TrackDataSchema = S.Struct({
+export const TrackDataSchema: S.Schema<TrackData, TrackDataEncoded> = S.Struct({
   name: S.String,
-  markers: S.Array(S.suspend((): S.Schema<MarkerData, MarkerDataEncoded> => MarkerDataSchema))
+  markers: S.Array(S.suspend(() => MarkerDataSchema))
 });
 
 export interface MarkerData {
@@ -1356,7 +1356,7 @@ export interface MarkerDataEncoded {
   readonly name: string;
 }
 
-export const MarkerDataSchema = S.Struct({
+export const MarkerDataSchema: S.Schema<MarkerData, MarkerDataEncoded> = S.Struct({
   id: S.String,
   name: S.String
 });

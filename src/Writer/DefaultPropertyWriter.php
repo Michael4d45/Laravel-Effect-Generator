@@ -22,6 +22,7 @@ class DefaultPropertyWriter implements PropertyWriter
 
         // Use the optional flag that was set during preprocessing
         $optional = $property->optional ? '?' : '';
+        $optionalPipe = $property->optional ? ' | undefined' : '';
         $readonly = 'readonly ';
 
         // Handle nullable: add | null if not already present and property is nullable
@@ -33,6 +34,6 @@ class DefaultPropertyWriter implements PropertyWriter
             $tsType = str_replace("\n", "\n  ", $tsType);
         }
 
-        return "  {$readonly}{$name}{$optional}: {$tsType};";
+        return "  {$readonly}{$name}{$optional}: {$tsType}{$optionalPipe};";
     }
 }

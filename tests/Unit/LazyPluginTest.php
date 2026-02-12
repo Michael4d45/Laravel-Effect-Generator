@@ -225,8 +225,8 @@ it('generates exact TypeScript output for Lazy property in FileWriter', function
         // The file now contains both interface and schema
         expect($content)->toContain('import { Schema as S } from \'effect\';');
         expect($content)->toContain('export interface ResponseData');
-        expect($content)->toContain('readonly user?: unknown;');
-        expect($content)->toContain('export const ResponseDataSchema = S.Struct');
+        expect($content)->toContain('readonly user?: unknown | undefined;');
+        expect($content)->toContain('export const ResponseDataSchema: S.Schema<ResponseData, ResponseDataEncoded> = S.Struct');
     } finally {
         if (is_dir($outputDir)) {
             deleteDirectory($outputDir);
@@ -271,8 +271,8 @@ it('generates exact TypeScript output for union with Lazy property in FileWriter
         // The file now contains both interface and schema
         expect($content)->toContain('import { Schema as S } from \'effect\';');
         expect($content)->toContain('export interface ResponseData');
-        expect($content)->toContain('readonly participants?: readonly unknown[];');
-        expect($content)->toContain('export const ResponseDataSchema = S.Struct');
+        expect($content)->toContain('readonly participants?: readonly unknown[] | undefined;');
+        expect($content)->toContain('export const ResponseDataSchema: S.Schema<ResponseData, ResponseDataEncoded> = S.Struct');
         
         // TODO: Once Lazy detection is fixed, this should be:
         // expect($content)->toContain('readonly participants?: readonly unknown[];');
@@ -321,8 +321,8 @@ it('generates exact TypeScript output for complex union with Lazy in FileWriter'
         // The file now contains both interface and schema
         expect($content)->toContain('import { Schema as S } from \'effect\';');
         expect($content)->toContain('export interface ResponseData');
-        expect($content)->toContain('readonly data?: readonly unknown[] | string;');
-        expect($content)->toContain('export const ResponseDataSchema = S.Struct');
+        expect($content)->toContain('readonly data?: readonly unknown[] | string | undefined;');
+        expect($content)->toContain('export const ResponseDataSchema: S.Schema<ResponseData, ResponseDataEncoded> = S.Struct');
     } finally {
         if (is_dir($outputDir)) {
             deleteDirectory($outputDir);
@@ -461,12 +461,12 @@ it('makes all properties optional when Optional attribute is on class', function
         expect($content)->toContain('export interface OptionalClassData');
 
         // Verify all properties are optional (have ?)
-        expect($content)->toContain('readonly name?: string;');
-        expect($content)->toContain('readonly age?: number;');
-        expect($content)->toContain('readonly email?: string;');
+        expect($content)->toContain('readonly name?: string | undefined;');
+        expect($content)->toContain('readonly age?: number | undefined;');
+        expect($content)->toContain('readonly email?: string | undefined;');
 
         // Verify the schema also has optional properties
-        expect($content)->toContain('export const OptionalClassDataSchema = S.Struct');
+        expect($content)->toContain('export const OptionalClassDataSchema: S.Schema<OptionalClassData, OptionalClassDataEncoded> = S.Struct');
         expect($content)->toContain('name: S.optional(S.String)');
         expect($content)->toContain('age: S.optional(S.Number)');
         expect($content)->toContain('email: S.optional(S.String)');

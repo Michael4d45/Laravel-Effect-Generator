@@ -113,7 +113,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
 
         $propertiesStr = implode(",\n", $properties);
 
-        return "export const {$schema->name}Schema = S.Struct({\n{$propertiesStr}\n});";
+        return "export const {$schema->name}Schema: S.Schema<{$schema->name}, {$schema->name}Encoded> = S.Struct({\n{$propertiesStr}\n});";
     }
 
     /**

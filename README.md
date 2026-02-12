@@ -123,7 +123,7 @@ export interface UserDataEncoded {
   readonly email_verified_at: string | null;
 }
 
-export const UserDataSchema = S.Struct({
+export const UserDataSchema: S.Schema<UserData, UserDataEncoded> = S.Struct({
   id: S.Number,
   name: S.String,
   email: S.String,

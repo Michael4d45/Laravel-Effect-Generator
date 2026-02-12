@@ -93,10 +93,10 @@ it('generates exact TypeScript output for SessionEventData with Lazy properties'
 
     // Verify Lazy properties are marked optional and Lazy is removed
     // GameSessionData|Lazy $session should become optional GameSessionData
-    expect($content)->toContain('readonly session?: GameSessionData;');
+    expect($content)->toContain('readonly session?: GameSessionData | undefined;');
     
     // Lazy|SessionParticipantData|null $participant should become optional SessionParticipantData | null
-    expect($content)->toContain('readonly participant?: SessionParticipantData | null;');
+    expect($content)->toContain('readonly participant?: SessionParticipantData | null | undefined;');
 
     // Verify Lazy type is completely removed from output (interface)
     expect($content)->not->toContain('Lazy');
@@ -105,7 +105,7 @@ it('generates exact TypeScript output for SessionEventData with Lazy properties'
     expect($content)->not->toContain('Carbon');
 
     // Verify the schema section exists and has correct structure
-    expect($content)->toContain('export const SessionEventDataSchema = S.Struct');
+    expect($content)->toContain('export const SessionEventDataSchema: S.Schema<SessionEventData, SessionEventDataEncoded> = S.Struct');
     
     // Verify schema has the right properties - specifically check that Lazy and Carbon are not in schema
     // This tests the bug fix where LazyPlugin needs to handle SCHEMA context properly

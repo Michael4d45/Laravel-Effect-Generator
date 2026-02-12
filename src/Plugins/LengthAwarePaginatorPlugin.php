@@ -107,7 +107,7 @@ class LengthAwarePaginatorPlugin implements Transformer
             export interface PaginationLink {
                 readonly url: string | null;
                 readonly label: string;
-                readonly page?: number | null;
+                readonly page?: number | null | undefined;
                 readonly active: boolean;
             }
 

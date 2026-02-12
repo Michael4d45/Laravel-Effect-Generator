@@ -113,7 +113,7 @@ import { Schema as S } from 'effect';
 export interface PaginationLink {
     readonly url: string | null;
     readonly label: string;
-    readonly page?: number | null;
+    readonly page?: number | null | undefined;
     readonly active: boolean;
 }
 
@@ -179,5 +179,5 @@ it('transforms to exact TypeScript output', function () {
     
     $result = $this->plugin->transform($paginatorType, WriterContext::SCHEMA);
     
-    expect($result)->toBe('LengthAwarePaginatorSchema(S.suspend((): S.Schema<UserData, UserDataEncoded> => UserDataSchema))');
+    expect($result)->toBe('LengthAwarePaginatorSchema(S.suspend(() => UserDataSchema))');
 });

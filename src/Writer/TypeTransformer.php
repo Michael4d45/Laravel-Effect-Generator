@@ -87,7 +87,7 @@ class TypeTransformer
                     return "{$type->alias}Schema";
                 }
 
-                return "S.suspend((): S.Schema<{$type->alias}, {$type->alias}Encoded> => {$type->alias}Schema)";
+                return "S.suspend(() => {$type->alias}Schema)";
             }
 
             if (

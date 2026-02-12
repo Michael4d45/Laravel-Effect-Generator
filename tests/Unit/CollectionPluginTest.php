@@ -106,7 +106,7 @@ it('transforms Collection with class reference in schema context', function () {
 
     $result = $this->plugin->transform($collectionType, WriterContext::SCHEMA);
 
-    expect($result)->toBe('S.Array(S.suspend((): S.Schema<UserData, UserDataEncoded> => UserDataSchema))');
+    expect($result)->toBe('S.Array(S.suspend(() => UserDataSchema))');
 });
 
 it('transforms Collection without type parameters in interface context', function () {

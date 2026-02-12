@@ -67,7 +67,7 @@ it('successfully transforms all fixtures', function () {
 
         $output = File::get($expectedFile);
         expect($output)->toContain("export interface $name");
-        expect($output)->toContain("export const {$name}Schema = S.Struct({");
+        expect($output)->toContain("export const {$name}Schema: S.Schema<{$name}, {$name}Encoded> = S.Struct({");
     }
 
     foreach ($enums as $enum) {
@@ -94,12 +94,12 @@ it('produces correct types for ApiResponseData', function () {
 
     expect($content)->toContain('export interface ApiResponseData {');
     expect($content)->toContain('export interface ApiResponseDataEncoded {');
-    expect($content)->toContain('export const ApiResponseDataSchema = S.Struct({');
+    expect($content)->toContain('export const ApiResponseDataSchema: S.Schema<ApiResponseData, ApiResponseDataEncoded> = S.Struct({');
 
-    expect($content)->toContain('users: S.Array(S.suspend((): S.Schema<UserData, UserDataEncoded> => UserDataSchema))');
-    expect($content)->toContain('tasks: S.Array(S.suspend((): S.Schema<TaskData, TaskDataEncoded> => TaskDataSchema))');
-    expect($content)->toContain('currentUser: S.NullOr(S.suspend((): S.Schema<UserData, UserDataEncoded> => UserDataSchema))');
-    expect($content)->toContain('userProfile: S.NullOr(S.suspend((): S.Schema<ProfileData, ProfileDataEncoded> => ProfileDataSchema))');
+    expect($content)->toContain('users: S.Array(S.suspend(() => UserDataSchema))');
+    expect($content)->toContain('tasks: S.Array(S.suspend(() => TaskDataSchema))');
+    expect($content)->toContain('currentUser: S.NullOr(S.suspend(() => UserDataSchema))');
+    expect($content)->toContain('userProfile: S.NullOr(S.suspend(() => ProfileDataSchema))');
 });
 
 it('produces correct types for UserData', function () {
@@ -111,9 +111,9 @@ it('produces correct types for UserData', function () {
     expect($content)->toContain('export interface UserData');
     expect($content)->toContain('readonly is_admin: boolean;');
     expect($content)->toContain('readonly email_verified_at: Date | null;');
-    expect($content)->toContain('readonly game_sessions?: readonly GameSessionData[];');
+    expect($content)->toContain('readonly game_sessions?: readonly GameSessionData[] | undefined;');
 
-    expect($content)->toContain('game_sessions: S.optional(S.Array(S.suspend((): S.Schema<GameSessionData, GameSessionDataEncoded> => GameSessionDataSchema)))');
+    expect($content)->toContain('game_sessions: S.optional(S.Array(S.suspend(() => GameSessionDataSchema)))');
 });
 
 it('produces correct types for Enums', function () {
