@@ -5,7 +5,14 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.8] - 2026-02-11
+## [0.2.9] - 2026-02-12
+
+### Changed
+
+- Enhanced schema generation to include full TypeScript type annotations on schema declarations (e.g., `S.Schema<Type, TypeEncoded>`).
+- Updated optional properties in TypeScript interfaces to explicitly include `| undefined` in their type declarations.
+- Simplified `S.suspend` calls in Effect schemas by removing verbose type annotations for cleaner output.
+- Updated all test expectations to match the new output format.
 
 ### Changed
 
