@@ -5,21 +5,6 @@ declare(strict_types=1);
 return [
     /*
      |--------------------------------------------------------------------------
-     | Paths to scan for Spatie Data classes and enums
-     |--------------------------------------------------------------------------
-     |
-     | Define the directories that contain your Spatie Data classes and PHP enums.
-     | These will be scanned recursively for classes extending Spatie\LaravelData\Data
-     | and PHP 8.1+ enums.
-     |
-     */
-    'paths' => [
-        app_path('Data'),
-        app_path('Enums'),
-    ],
-
-    /*
-     |--------------------------------------------------------------------------
      | Data Class Discoverers
      |--------------------------------------------------------------------------
      |

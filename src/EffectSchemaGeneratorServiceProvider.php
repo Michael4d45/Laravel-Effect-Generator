@@ -10,8 +10,6 @@ use EffectSchemaGenerator\Commands\GenerateSchemasCommand;
 use EffectSchemaGenerator\Discovery\ClassDiscoverer;
 use EffectSchemaGenerator\Discovery\DataClassDiscoverer;
 use EffectSchemaGenerator\Discovery\EnumDiscoverer;
-use EffectSchemaGenerator\Discovery\NativeEnumDiscoverer;
-use EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer;
 use EffectSchemaGenerator\Reflection\DataClassParser;
 use EffectSchemaGenerator\Reflection\EnumParser;
 use EffectSchemaGenerator\Writer\DefaultPropertyWriter;
@@ -30,19 +28,14 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/Config/config.php', 'effect-schema');
 
         $this->app->singleton(ClassDiscoverer::class, function ($app) {
-            $legacyPaths = array_map('strval', config()->array('effect-schema.paths', []));
-
             $dataDiscoverers = $this->resolveConfiguredDataDiscoverers(
                 app: $app,
-                legacyPaths: $legacyPaths,
             );
             $enumDiscoverers = $this->resolveConfiguredEnumDiscoverers(
                 app: $app,
-                legacyPaths: $legacyPaths,
             );
 
             return new ClassDiscoverer(
-                paths: $legacyPaths,
                 dataClassDiscoverers: $dataDiscoverers,
                 enumDiscoverers: $enumDiscoverers,
             );
@@ -101,23 +94,12 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
     }
 
     /**
-     * @param  array<string>  $legacyPaths
      * @return list<DataClassDiscoverer>
      */
     private function resolveConfiguredDataDiscoverers(
         $app,
-        array $legacyPaths,
     ): array {
         $configured = config()->array('effect-schema.data_discoverers', []);
-
-        if ($configured === []) {
-            $configured = [
-                [
-                    'class' => SpatieDataClassDiscoverer::class,
-                    'paths' => $legacyPaths,
-                ],
-            ];
-        }
 
         /** @var list<DataClassDiscoverer> $discoverers */
         $discoverers = [];
@@ -149,23 +131,11 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
     }
 
     /**
-     * @param  array<string>  $legacyPaths
      * @return list<EnumDiscoverer>
      */
-    private function resolveConfiguredEnumDiscoverers(
-        $app,
-        array $legacyPaths,
-    ): array {
+    private function resolveConfiguredEnumDiscoverers($app): array
+    {
         $configured = config()->array('effect-schema.enum_discoverers', []);
-
-        if ($configured === []) {
-            $configured = [
-                [
-                    'class' => NativeEnumDiscoverer::class,
-                    'paths' => $legacyPaths,
-                ],
-            ];
-        }
 
         /** @var list<EnumDiscoverer> $discoverers */
         $discoverers = [];

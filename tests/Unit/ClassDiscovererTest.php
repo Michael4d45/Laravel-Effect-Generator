@@ -65,7 +65,18 @@ it('discovers enums', function () {
 });
 
 it('handles non-existent paths gracefully', function () {
-    $discoverer = new ClassDiscoverer(['/non/existent/path']);
+    $discoverer = new ClassDiscoverer(
+        dataClassDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer([
+                '/non/existent/path',
+            ]),
+        ],
+        enumDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\NativeEnumDiscoverer([
+                '/non/existent/path',
+            ]),
+        ],
+    );
     
     $classes = $discoverer->discoverDataClasses();
     $enums = $discoverer->discoverEnums();
@@ -75,7 +86,14 @@ it('handles non-existent paths gracefully', function () {
 });
 
 it('handles empty paths', function () {
-    $discoverer = new ClassDiscoverer([]);
+    $discoverer = new ClassDiscoverer(
+        dataClassDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer([]),
+        ],
+        enumDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\NativeEnumDiscoverer([]),
+        ],
+    );
     
     $classes = $discoverer->discoverDataClasses();
     $enums = $discoverer->discoverEnums();
@@ -91,7 +109,18 @@ it('handles files without content', function () {
     $tempFile = $tempDir . '/empty_test_file.php';
     touch($tempFile);
     
-    $discoverer = new ClassDiscoverer([$tempDir]);
+    $discoverer = new ClassDiscoverer(
+        dataClassDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer([
+                $tempDir,
+            ]),
+        ],
+        enumDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\NativeEnumDiscoverer([
+                $tempDir,
+            ]),
+        ],
+    );
     
     // Should not crash when encountering empty file (line 100)
     $classes = $discoverer->discoverDataClasses();
@@ -112,7 +141,18 @@ it('handles files without namespace or class', function () {
     $tempFile = $tempDir . '/invalid_test_file.php';
     file_put_contents($tempFile, '<?php echo "test";');
     
-    $discoverer = new ClassDiscoverer([$tempDir]);
+    $discoverer = new ClassDiscoverer(
+        dataClassDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer([
+                $tempDir,
+            ]),
+        ],
+        enumDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\NativeEnumDiscoverer([
+                $tempDir,
+            ]),
+        ],
+    );
     
     // Should not crash when encountering invalid file (line 123)
     $classes = $discoverer->discoverDataClasses();
@@ -143,7 +183,13 @@ class BadDataClass extends \Spatie\LaravelData\Data {
 PHP
     );
     
-    $discoverer = new ClassDiscoverer([$tempDir]);
+    $discoverer = new ClassDiscoverer(
+        dataClassDiscoverers: [
+            new \EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer([
+                $tempDir,
+            ]),
+        ],
+    );
     
     // Should not crash even if Surveyor has issues - should fallback to is_subclass_of
     $classes = $discoverer->discoverDataClasses();
@@ -158,7 +204,6 @@ PHP
 
 it('aggregates configured discovery plugins', function () {
     $discoverer = new ClassDiscoverer(
-        paths: [],
         dataClassDiscoverers: [
             new TestPluginDataDiscoverer([
                 \EffectSchemaGenerator\Tests\Fixtures\UserData::class,
@@ -191,7 +236,6 @@ it('aggregates configured discovery plugins', function () {
 
 it('continues when a configured plugin fails', function () {
     $discoverer = new ClassDiscoverer(
-        paths: [],
         dataClassDiscoverers: [
             new FailingPluginDataDiscoverer,
             new TestPluginDataDiscoverer([

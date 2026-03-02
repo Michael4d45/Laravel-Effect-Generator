@@ -215,12 +215,6 @@ discoverers for data classes and enums.
 
 ```php
 return [
-  // Legacy fallback paths (used when discoverer lists are empty)
-  'paths' => [
-    app_path('Data'),
-    app_path('Enums'),
-  ],
-
   // Discoverers for Spatie Data classes
   'data_discoverers' => [
     [
@@ -254,7 +248,6 @@ Key options:
 
 - `data_discoverers`: list of discoverer definitions (`class` + `paths`) used to find Spatie Data classes.
 - `enum_discoverers`: list of discoverer definitions (`class` + `paths`) used to find PHP enums.
-- `paths`: legacy fallback list used if discoverer lists are not configured.
 - `transformers`: custom type transformation and writer plugins.
 - `output.directory`: destination for generated TypeScript files.
 - `output.file_extension`: generated file extension (default `.ts`).

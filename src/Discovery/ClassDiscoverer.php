@@ -12,15 +12,12 @@ use Illuminate\Support\Collection;
 class ClassDiscoverer
 {
     /**
-     * @param  array<string>  $paths  Legacy paths fallback for backward compatibility
      * @param  list<DataClassDiscoverer>  $dataClassDiscoverers
      * @param  list<EnumDiscoverer>  $enumDiscoverers
      */
     public function __construct(
-        private array $paths = [],
         private array $dataClassDiscoverers = [],
         private array $enumDiscoverers = [],
-        private null|PhpClassCandidateScanner $scanner = null,
     ) {}
 
     /**
@@ -30,15 +27,6 @@ class ClassDiscoverer
      */
     public function discoverDataClasses(): Collection
     {
-        if (empty($this->dataClassDiscoverers)) {
-            $legacy = new SpatieDataClassDiscoverer(
-                paths: $this->paths,
-                scanner: $this->scanner(),
-            );
-
-            return $legacy->discover()->unique()->values();
-        }
-
         /** @var Collection<string> $result */
         $result = collect();
         foreach ($this->dataClassDiscoverers as $discoverer) {
@@ -60,15 +48,6 @@ class ClassDiscoverer
      */
     public function discoverEnums(): Collection
     {
-        if (empty($this->enumDiscoverers)) {
-            $legacy = new NativeEnumDiscoverer(
-                paths: $this->paths,
-                scanner: $this->scanner(),
-            );
-
-            return $legacy->discover()->unique()->values();
-        }
-
         /** @var Collection<string> $result */
         $result = collect();
         foreach ($this->enumDiscoverers as $discoverer) {
@@ -81,10 +60,5 @@ class ClassDiscoverer
         }
 
         return $result->unique()->values();
-    }
-
-    private function scanner(): PhpClassCandidateScanner
-    {
-        return $this->scanner ??= new PhpClassCandidateScanner;
     }
 }

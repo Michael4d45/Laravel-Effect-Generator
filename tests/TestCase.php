@@ -25,10 +25,6 @@ abstract class TestCase extends OrchestraTestCase
             __DIR__ . '/Fixtures',
         ];
 
-        $app['config']->set('effect-schema.paths', [
-            ...$paths,
-        ]);
-
         $app['config']->set('effect-schema.data_discoverers', [
             [
                 'class' => SpatieDataClassDiscoverer::class,
