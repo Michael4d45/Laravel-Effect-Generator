@@ -28,12 +28,10 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/Config/config.php', 'effect-schema');
 
         $this->app->singleton(ClassDiscoverer::class, function ($app) {
-            $dataDiscoverers = $this->resolveConfiguredDataDiscoverers(
-                app: $app,
-            );
-            $enumDiscoverers = $this->resolveConfiguredEnumDiscoverers(
-                app: $app,
-            );
+            $dataDiscoverers =
+                $this->resolveConfiguredDataDiscoverers(app: $app);
+            $enumDiscoverers =
+                $this->resolveConfiguredEnumDiscoverers(app: $app);
 
             return new ClassDiscoverer(
                 dataClassDiscoverers: $dataDiscoverers,
@@ -96,9 +94,8 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
     /**
      * @return list<DataClassDiscoverer>
      */
-    private function resolveConfiguredDataDiscoverers(
-        $app,
-    ): array {
+    private function resolveConfiguredDataDiscoverers($app): array
+    {
         $configured = config()->array('effect-schema.data_discoverers', []);
 
         /** @var list<DataClassDiscoverer> $discoverers */
