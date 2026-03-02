@@ -210,8 +210,7 @@ export const RoleSchema = S.Union(
 
 ## Configuration
 
-The published config now supports plugin-based discovery with separate
-discoverers for data classes and enums.
+The published config supports discoverers for data classes and enums.
 
 ```php
 return [

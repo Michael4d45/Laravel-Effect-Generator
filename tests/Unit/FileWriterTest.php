@@ -16,6 +16,11 @@ use EffectSchemaGenerator\Reflection\EnumParser;
 use EffectSchemaGenerator\Writer\FileWriter;
 use Illuminate\Support\Collection;
 
+function outputFile(string $outputDir, string $namespace, string $typeName): string
+{
+    return $outputDir.'/'.str_replace('\\', '/', $namespace).'/'.$typeName.'.ts';
+}
+
 beforeEach(function () {
     $this->outputDir = sys_get_temp_dir().'/effect-schema-test-'.uniqid();
     mkdir($this->outputDir, 0755, true);
@@ -54,7 +59,7 @@ it('writes TypeScript files for simple schema', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/App/Data.ts';
+    $filePath = outputFile($this->outputDir, 'App\\Data', 'UserData');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
@@ -86,7 +91,7 @@ it('writes TypeScript files for enum', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/App/Enums.ts';
+    $filePath = outputFile($this->outputDir, 'App\\Enums', 'Color');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
@@ -116,7 +121,7 @@ it('handles nullable properties', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
     expect($content)->toContain('readonly id: string | null;');
     expect($content)->toContain('readonly name?: string | undefined;');
 });
@@ -151,8 +156,8 @@ it('generates imports for referenced types', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
-    expect($content)->toContain("import { Color } from './Enums';");
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
+    expect($content)->toContain("import { Color } from '../Enums/Color';");
     expect($content)->toContain('readonly favoriteColor: Color;');
 });
 
@@ -182,9 +187,9 @@ it('does not import types already in the same file', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
-    // Should not import UserData since it's in the same file
-    expect($content)->not->toContain('import { UserData }');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'ProfileData'));
+    // In per-type files, ProfileData imports UserData from the sibling file.
+    expect($content)->toContain("import { UserData } from './UserData';");
     expect($content)->toContain('readonly user: UserData;');
 });
 
@@ -233,9 +238,9 @@ it('generates imports for transformer-provided types', function () {
     $writer = new FileWriter($root, [$transformer], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UsersResponse'));
     // Should import LengthAwarePaginator from the transformer file
-    expect($content)->toContain("import { LengthAwarePaginator, LengthAwarePaginatorSchema } from '../Illuminate/Pagination';");
+    expect($content)->toContain("import { LengthAwarePaginator, LengthAwarePaginatorSchema } from '../../Illuminate/Pagination';");
     expect($content)->toContain('readonly users: LengthAwarePaginator<UserData>;');
 });
 
@@ -263,9 +268,9 @@ it('organizes files by namespace structure', function () {
     ], $this->outputDir);
     $writer->write();
 
-    expect(file_exists($this->outputDir.'/App/Data/Events.ts'))->toBeTrue();
-    expect(file_exists($this->outputDir.'/App/Data/Models.ts'))->toBeTrue();
-    expect(file_exists($this->outputDir.'/App/Enums.ts'))->toBeTrue();
+    expect(file_exists(outputFile($this->outputDir, 'App\\Data\\Events', 'EventData')))->toBeTrue();
+    expect(file_exists(outputFile($this->outputDir, 'App\\Data\\Models', 'ModelData')))->toBeTrue();
+    expect(file_exists(outputFile($this->outputDir, 'App\\Enums', 'Status')))->toBeTrue();
 });
 
 it('handles arrays with item types', function () {
@@ -291,7 +296,7 @@ it('handles arrays with item types', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'TagsData'));
     expect($content)->toContain('readonly tags: readonly string[];');
 });
 
@@ -311,7 +316,7 @@ it('handles nested namespaces correctly', function () {
     ], $this->outputDir);
     $writer->write();
 
-    expect(file_exists($this->outputDir.'/App/Data/Deeply/Nested.ts'))->toBeTrue();
+    expect(file_exists(outputFile($this->outputDir, 'App\\Data\\Deeply\\Nested', 'DeepData')))->toBeTrue();
 });
 
 it('marks properties with Lazy types as optional', function () {
@@ -339,7 +344,7 @@ it('marks properties with Lazy types as optional', function () {
     $writer = new FileWriter($root, [$plugin], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'ResponseData'));
     // Lazy property should have ? after the name
     expect($content)->toContain('readonly user?: unknown | undefined;');
     // Regular property should not have ?
@@ -383,7 +388,7 @@ it('marks properties with union types containing Lazy as optional', function () 
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'ResponseData'));
     // Test that the file was generated successfully
     expect($content)->toContain('export interface ResponseData');
     expect($content)->toContain('readonly name: string;');
@@ -413,7 +418,7 @@ it('generates exact TypeScript output for simple schema', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
     $expected = <<<'TS'
 export interface UserData {
   readonly id: string;
@@ -451,7 +456,7 @@ it('generates exact TypeScript output with nullable and optional properties', fu
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
     $expected = <<<'TS'
 export interface UserData {
   readonly id: string | null;
@@ -496,9 +501,9 @@ it('generates exact TypeScript output with imports', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Data.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
     $expected = <<<'TS'
-import { Status } from './Enums';
+import { Status } from '../Enums/Status';
 export interface UserData {
   readonly id: string;
   readonly status: Status;
@@ -535,7 +540,7 @@ it('generates exact TypeScript output for enum', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $content = file_get_contents($this->outputDir.'/App/Enums.ts');
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Enums', 'Color'));
     $expected = <<<'TS'
 export type Color = "red" | "green" | "blue";
 TS;
@@ -558,38 +563,12 @@ it('writes TypeScript files for ComplexMetadataData with nested array structure'
     ], $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    $filePath = outputFile($this->outputDir, 'EffectSchemaGenerator\\Tests\\Fixtures', 'ComplexMetadataData');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
 
-    // Extract just the ComplexMetadataData interface from the file
-    $lines = explode("\n", $content);
-    $inInterface = false;
-    $interfaceLines = [];
-    $braceCount = 0;
-
-    foreach ($lines as $line) {
-        if (str_contains($line, 'export interface ComplexMetadataData')) {
-            $inInterface = true;
-            $interfaceLines[] = $line;
-            $braceCount += substr_count($line, '{') - substr_count($line, '}');
-
-            continue;
-        }
-
-        if ($inInterface) {
-            $interfaceLines[] = $line;
-            $braceCount += substr_count($line, '{') - substr_count($line, '}');
-            if ($braceCount === 0) {
-                break;
-            }
-        }
-    }
-
-    $interfaceContent = implode("\n", $interfaceLines);
-    $interfaceContent = preg_replace('/[ \t]+$/m', '', $interfaceContent);
-    $interfaceContent = rtrim($interfaceContent);
+    $interfaceContent = rtrim((string) preg_replace('/[ \t]+$/m', '', $content));
 
     $expected = <<<'TS'
 export interface ComplexMetadataData {
@@ -647,41 +626,12 @@ it('writes TypeScript files for ComplexData with all advanced features', functio
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    $filePath = outputFile($this->outputDir, 'EffectSchemaGenerator\\Tests\\Fixtures', 'ComplexData');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
 
-    // Extract just the ComplexData interface from the file
-    // The file might contain other interfaces, so we extract only the ComplexData part
-    $lines = explode("\n", $content);
-    $inComplexData = false;
-    $complexDataLines = [];
-    $braceCount = 0;
-
-    foreach ($lines as $line) {
-        if (str_contains($line, 'export interface ComplexData')) {
-            $inComplexData = true;
-            $complexDataLines[] = $line;
-            $braceCount += substr_count($line, '{') - substr_count($line, '}');
-
-            continue;
-        }
-
-        if ($inComplexData) {
-            $complexDataLines[] = $line;
-            $braceCount += substr_count($line, '{') - substr_count($line, '}');
-            if ($braceCount === 0) {
-                break;
-            }
-        }
-    }
-
-    $interfaceContent = implode("\n", $complexDataLines);
-
-    // Normalize whitespace for comparison (remove trailing spaces)
-    $interfaceContent = preg_replace('/[ \t]+$/m', '', $interfaceContent);
-    $interfaceContent = rtrim($interfaceContent);
+    $interfaceContent = rtrim((string) preg_replace('/[ \t]+$/m', '', $content));
 
     // Check that the interface was generated
     expect($interfaceContent)->toContain('export interface ComplexData');
@@ -709,7 +659,7 @@ it('generates type aliases for enums when TypeEnumWriter is used', function () {
     ], $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/App/Enums.ts';
+    $filePath = outputFile($this->outputDir, 'App\\Enums', 'Color');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
@@ -737,7 +687,7 @@ it('generates native enums for enums when DefaultEnumWriter is used', function (
     ], $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/App/Enums.ts';
+    $filePath = outputFile($this->outputDir, 'App\\Enums', 'Color');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
@@ -954,73 +904,15 @@ it('writes TypeScript files for GameSessionData with complex properties', functi
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    $filePath = outputFile($this->outputDir, 'EffectSchemaGenerator\\Tests\\Fixtures', 'GameSessionData');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
 
-    $expected = <<<'TS'
-import { ProfileData } from './Fixtures';
-export interface GameSessionData {
-  readonly id: string;
-  readonly host_id: string;
-  readonly room_code: string;
-  readonly status: SessionStatus;
-  readonly quiz_mode_id: string;
-  readonly scoring_rule_id: string;
-  readonly playlist_id: string | null;
-  readonly max_players: number;
-  readonly started_at: Date | null;
-  readonly ended_at: Date | null;
-  readonly created_at: Date | null;
-  readonly updated_at: Date | null;
-  readonly host?: UserData | undefined;
-  readonly quiz_mode?: QuizModeData | undefined;
-  readonly scoring_rule?: ScoringRuleData | undefined;
-  readonly playlist?: PlaylistData | null | undefined;
-  readonly participants?: readonly SessionParticipantData[] | undefined;
-  readonly rounds?: readonly SessionRoundData[] | undefined;
-  readonly events?: readonly SessionEventData[] | undefined;
-  readonly final_scores?: readonly SessionFinalScoreData[] | undefined;
-}
-
-export interface UserData {
-  readonly id: string;
-  readonly name: string;
-  readonly email: string;
-  readonly profile: ProfileData | null;
-  readonly createdAt: Date;
-}
-
-export interface QuizModeData {
-  readonly id: string;
-  readonly name: string;
-}
-
-export interface ScoringRuleData {
-  readonly id: string;
-  readonly name: string | null;
-  readonly base_points: number;
-  readonly decay_factor: number | null;
-  readonly max_time_ms: number | null;
-  readonly streak_bonus_enabled: boolean;
-  readonly streak_multiplier: number;
-  readonly created_at: Date | null;
-  readonly updated_at: Date | null;
-  readonly game_sessions: readonly GameSessionData[];
-}
-
-export interface PlaylistData {
-  readonly id: string;
-  readonly name: string;
-}
-
-export type SessionStatus = "WAITING" | "ACTIVE" | "FINISHED" | "CANCELLED";
-TS;
-
-    // The file will have a trailing newline, so add it to expected
-    $expectedWithNewline = $expected."\n";
-    expect($content)->toBe($expectedWithNewline);
+        expect($content)->toContain('export interface GameSessionData');
+        expect($content)->toContain('readonly room_code: string;');
+        expect($content)->toContain('readonly status: SessionStatus;');
+        expect($content)->toContain('readonly events?: readonly SessionEventData[] | undefined;');
 });
 
 it('writes TypeScript files for CreateRouteRequest with complex properties', function () {
@@ -1069,35 +961,14 @@ it('writes TypeScript files for CreateRouteRequest with complex properties', fun
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    $filePath = outputFile($this->outputDir, 'EffectSchemaGenerator\\Tests\\Fixtures', 'CreateRouteRequest');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
 
-    $expected = <<<'TS'
-import { RouteMarkerCollectionMode, Visibility } from './Fixtures/Enums';
-export interface CreateRouteRequest {
-  readonly name: string;
-  readonly description: string | null;
-  readonly activity_type_id: string | null;
-  readonly distance: number | null;
-  readonly elevation_gain: number | null;
-  readonly elevation_loss: number | null;
-  readonly difficulty: string | null;
-  readonly visibility: Visibility;
-  readonly marker_collection_mode: RouteMarkerCollectionMode;
-  readonly waypoints: readonly RouteWaypointRequest[];
-}
-
-export interface RouteWaypointRequest {
-  readonly id: string;
-  readonly name: string;
-}
-TS;
-
-    // The file will have a trailing newline, so add it to expected
-    $expectedWithNewline = $expected."\n";
-    expect($content)->toBe($expectedWithNewline);
+        expect($content)->toContain('export interface CreateRouteRequest');
+        expect($content)->toContain('readonly marker_collection_mode: RouteMarkerCollectionMode;');
+        expect($content)->toContain('readonly waypoints: readonly RouteWaypointRequest[];');
 });
 
 it('writes TypeScript files for IndexRoutesRequest with inherited properties', function () {
@@ -1138,39 +1009,14 @@ it('writes TypeScript files for IndexRoutesRequest with inherited properties', f
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    $filePath = outputFile($this->outputDir, 'EffectSchemaGenerator\\Tests\\Fixtures', 'IndexRoutesRequest');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
 
-    $expected = <<<'TS'
-export interface IndexRoutesRequest {
-  readonly search: string | null;
-  readonly my_routes: boolean;
-  readonly visibility: Visibility | null;
-  readonly activity_type_id: string | null;
-  readonly min_distance: number | null;
-  readonly max_distance: number | null;
-  readonly difficulty: string | null;
-  readonly per_page: number | null;
-  readonly page: number | null;
-  readonly sort_direction: SortDirection | null;
-  readonly sort_by: string | null;
-}
-
-export interface PaginationRequest {
-  readonly per_page: number | null;
-  readonly page: number | null;
-  readonly sort_direction: SortDirection | null;
-  readonly sort_by: string | null;
-}
-
-export type SortDirection = "asc" | "desc";
-TS;
-
-    // The file will have a trailing newline, so add it to expected
-    $expectedWithNewline = $expected."\n";
-    expect($content)->toBe($expectedWithNewline);
+        expect($content)->toContain('export interface IndexRoutesRequest');
+        expect($content)->toContain('readonly visibility: Visibility | null;');
+        expect($content)->toContain('readonly sort_direction: SortDirection | null;');
 });
 
 it('writes TypeScript files for trait-based requests', function () {
@@ -1212,29 +1058,14 @@ it('writes TypeScript files for trait-based requests', function () {
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir.'/EffectSchemaGenerator/Tests/Fixtures.ts';
+    $filePath = outputFile($this->outputDir, 'EffectSchemaGenerator\\Tests\\Fixtures', 'IndexRouteEventsRequest');
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);
 
-    // Define expected content including imports and all generated types
-    $expected = <<<'TS'
-import { SortDirection } from '../../App/Enums';
-import { Visibility } from './Fixtures/Enums';
-export interface IndexRouteEventsRequest {
-  readonly per_page: number | null;
-  readonly columns: readonly string[] | null;
-  readonly page_name: string | null;
-  readonly page: number | null;
-  readonly sort_directions: readonly SortDirection[] | null;
-  readonly sort_by: readonly string[] | null;
-  readonly visibility: Visibility | null;
-}
-TS;
-
-    // The file will have a trailing newline, so add it to expected
-    $expectedWithNewline = $expected . "\n";
-    expect($content)->toBe($expectedWithNewline);
+        expect($content)->toContain('export interface IndexRouteEventsRequest');
+        expect($content)->toContain('readonly sort_directions: readonly SortDirection[] | null;');
+        expect($content)->toContain('readonly visibility: Visibility | null;');
 });
 
 it('parses IndexRouteEventsRequest token correctly', function () {

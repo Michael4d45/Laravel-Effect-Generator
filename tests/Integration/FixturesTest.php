@@ -33,14 +33,12 @@ afterEach(function () {
 });
 
 /**
- * Helper to determine expected file path based on namespace.
+ * Helper to determine expected file path based on namespace and type name.
  */
-function getExpectedFile(string $namespace, string $outputDir): string
+function getExpectedFile(string $namespace, string $typeName, string $outputDir): string
 {
-    $parts = explode('\\', $namespace);
-    $fileName = array_pop($parts);
-    $path = implode('/', $parts);
-    $suffix = $path ? $path.'/'.$fileName.'.ts' : $fileName.'.ts';
+    $path = str_replace('\\', '/', $namespace);
+    $suffix = $path.'/'.$typeName.'.ts';
 
     return $outputDir.'/'.$suffix;
 }
@@ -60,7 +58,7 @@ it('successfully transforms all fixtures', function () {
         $namespace = $reflection->getNamespaceName();
         $name = $reflection->getShortName();
 
-        $expectedFile = getExpectedFile($namespace, $this->outputDir);
+        $expectedFile = getExpectedFile($namespace, $name, $this->outputDir);
 
         expect(File::exists($expectedFile))
             ->toBeTrue("Expected output file $expectedFile to exist for $name ($namespace)");
@@ -75,7 +73,7 @@ it('successfully transforms all fixtures', function () {
         $namespace = $reflection->getNamespaceName();
         $name = $reflection->getShortName();
 
-        $expectedFile = getExpectedFile($namespace, $this->outputDir);
+        $expectedFile = getExpectedFile($namespace, $name, $this->outputDir);
 
         expect(File::exists($expectedFile))
             ->toBeTrue("Expected output file $expectedFile to exist for enum $name ($namespace)");
@@ -89,7 +87,7 @@ it('successfully transforms all fixtures', function () {
 it('produces correct types for ApiResponseData', function () {
     Artisan::call('effect-schema:transform');
 
-    $file = getExpectedFile('EffectSchemaGenerator\Tests\Fixtures', $this->outputDir);
+    $file = getExpectedFile('EffectSchemaGenerator\Tests\Fixtures', 'ApiResponseData', $this->outputDir);
     $content = File::get($file);
 
     expect($content)->toContain('export interface ApiResponseData {');
@@ -105,7 +103,7 @@ it('produces correct types for ApiResponseData', function () {
 it('produces correct types for UserData', function () {
     Artisan::call('effect-schema:transform');
 
-    $file = getExpectedFile('App\Data\Models', $this->outputDir);
+    $file = getExpectedFile('App\Data\Models', 'UserData', $this->outputDir);
     $content = File::get($file);
 
     expect($content)->toContain('export interface UserData');
@@ -119,7 +117,7 @@ it('produces correct types for UserData', function () {
 it('produces correct types for Enums', function () {
     Artisan::call('effect-schema:transform');
 
-    $file = getExpectedFile('App\Enums', $this->outputDir);
+    $file = getExpectedFile('App\Enums', 'Role', $this->outputDir);
     $content = File::get($file);
 
     expect($content)->toContain('export type Role = "host" | "player" | "spectator";');

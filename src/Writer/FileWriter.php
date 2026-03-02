@@ -14,6 +14,7 @@ class FileWriter
     private array $transformers;
     private FileContentWriter $fileContentWriter;
     private string $outputDirectory;
+    private \EffectSchemaGenerator\Writer\OutputPathResolver $pathResolver;
 
     /**
      * @param RootIR $ast The root IR to generate files for
@@ -29,6 +30,8 @@ class FileWriter
         $this->outputDirectory = $outputDirectory ?: resource_path(
             'ts/schemas',
         );
+        $this->pathResolver =
+            new \EffectSchemaGenerator\Writer\OutputPathResolver;
 
         $this->fileContentWriter = new MultiArtifactFileContentWriter(
             $transformers,
@@ -47,10 +50,8 @@ class FileWriter
         // Write transformer-provided files first
         $this->writeTransformerFiles();
 
-        // Group namespaces by their file structure
-        $fileGroups = $this->groupNamespacesByFile();
-
-        foreach ($fileGroups as $filePath => $namespaces) {
+        // Write one file per schema/enum symbol to mirror PHP namespace + type.
+        foreach ($this->buildFileUnits() as $filePath => $namespaces) {
             $fullPath = $this->outputDirectory . '/' . $filePath;
             $directory = dirname($fullPath);
             if (!is_dir($directory)) {
@@ -137,36 +138,42 @@ class FileWriter
      *
      * @return array<string, list<NamespaceIR>> File path => namespaces
      */
-    private function groupNamespacesByFile(): array
+    private function buildFileUnits(): array
     {
-        $groups = [];
+        $units = [];
 
         foreach ($this->ast->namespaces as $namespace) {
-            $filePath = $this->namespaceToFilePath($namespace->namespace);
-            if (!array_key_exists($filePath, $groups)) {
-                $groups[$filePath] = [];
+            foreach ($namespace->schemas as $schema) {
+                $filePath = $this->pathResolver->schemaFilePath(
+                    $namespace->namespace,
+                    $schema->name,
+                );
+
+                $unitNamespace = new \EffectSchemaGenerator\IR\NamespaceIR(
+                    namespace: $namespace->namespace,
+                    uses: $namespace->uses,
+                    schemas: [$schema],
+                    enums: [],
+                );
+                $units[$filePath] = [$unitNamespace];
             }
-            $groups[$filePath][] = $namespace;
+
+            foreach ($namespace->enums as $enum) {
+                $filePath = $this->pathResolver->enumFilePath(
+                    $namespace->namespace,
+                    $enum->name,
+                );
+
+                $unitNamespace = new \EffectSchemaGenerator\IR\NamespaceIR(
+                    namespace: $namespace->namespace,
+                    uses: $namespace->uses,
+                    schemas: [],
+                    enums: [$enum],
+                );
+                $units[$filePath] = [$unitNamespace];
+            }
         }
 
-        return $groups;
-    }
-
-    /**
-     * Convert namespace to file path.
-     * Examples:
-     * - App\Data\Events -> App/Data/Events.ts
-     * - App\Enums -> App/Enums.ts
-     * - Illuminate\Pagination -> Illuminate/Pagination.ts
-     */
-    private function namespaceToFilePath(string $namespace): string
-    {
-        $parts = explode('\\', $namespace);
-        $fileName = array_pop($parts);
-        $path = implode('/', $parts);
-        if ($path) {
-            return $path . '/' . $fileName . '.ts';
-        }
-        return $fileName . '.ts';
+        return $units;
     }
 }

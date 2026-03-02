@@ -8,7 +8,6 @@ use EffectSchemaGenerator\IR\RootIR;
 use EffectSchemaGenerator\IR\SchemaIR;
 use EffectSchemaGenerator\IR\Types\ClassReferenceTypeIR;
 use EffectSchemaGenerator\IR\Types\IntTypeIR;
-use EffectSchemaGenerator\IR\Types\StringTypeIR;
 use EffectSchemaGenerator\Plugins\DatePlugin;
 use EffectSchemaGenerator\Writer\DefaultPropertyWriter;
 use EffectSchemaGenerator\Writer\DefaultSchemaWriter;
@@ -62,7 +61,8 @@ it('debug: show actual generated output with DatePlugin', function () {
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
     
-    $filePath = $this->outputDir . '/App/Data/Events.ts';
+    $filePath = $this->outputDir . '/App/Data/Events/SessionEventOccurredData.ts';
+    expect(file_exists($filePath))->toBeTrue();
     $content = file_get_contents($filePath);
     
     // The assertions that should pass if DatePlugin is working

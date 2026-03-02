@@ -19,9 +19,13 @@ use EffectSchemaGenerator\IR\Types\UnionTypeIR;
  */
 class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
 {
+    private OutputPathResolver $pathResolver;
+
     public function __construct(
         private array $transformers = [],
-    ) {}
+    ) {
+        $this->pathResolver = new OutputPathResolver;
+    }
 
     public function writeSchema(
         SchemaIR $schema,
@@ -31,6 +35,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         array &$imports,
     ): string {
         $properties = [];
+        /** @var array<string, array{namespace: string, alias: string, fqcn: string, isEnum?: bool}> $referencedTypes */
         $referencedTypes = [];
 
         // Create a TypeScriptWriter for schema context
@@ -78,7 +83,7 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
             // Check if a transformer provides this type
             $transformerFilePath = $this->getTransformerFilePathForType($fqcn);
             if ($transformerFilePath !== null) {
-                $relativePath = $this->calculateRelativePath(
+                $relativePath = $this->pathResolver->relativeImportPath(
                     $currentFilePath,
                     $transformerFilePath,
                 );
@@ -92,9 +97,8 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
                 continue;
             }
 
-            $targetNamespace = $info['namespace'];
-            $targetFilePath = $this->namespaceToFilePath($targetNamespace);
-            $relativePath = $this->calculateRelativePath(
+            $targetFilePath = $this->pathResolver->fqcnFilePath($info['fqcn']);
+            $relativePath = $this->pathResolver->relativeImportPath(
                 $currentFilePath,
                 $targetFilePath,
             );
@@ -244,75 +248,6 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         }
 
         return null;
-    }
-
-    /**
-     * Convert namespace to file path.
-     */
-    private function namespaceToFilePath(string $namespace): string
-    {
-        $parts = explode('\\', $namespace);
-        $fileName = array_pop($parts);
-        $path = implode('/', $parts);
-        if ($path) {
-            return $path . '/' . $fileName . '.ts';
-        }
-
-        return $fileName . '.ts';
-    }
-
-    /**
-     * Calculate relative path from current file to target file.
-     */
-    private function calculateRelativePath(string $from, string $to): string
-    {
-        $fromDir = dirname($from);
-        $toDir = dirname($to);
-        $toFile = basename($to, '.ts');
-
-        $fromDir = rtrim($fromDir, '/');
-        $toDir = rtrim($toDir, '/');
-
-        if ($fromDir === $toDir || $fromDir === '.' && $toDir === '.') {
-            return "./{$toFile}";
-        }
-
-        $fromParts =
-            $fromDir === '.' || $fromDir === '' ? [] : explode('/', $fromDir);
-        $toParts = $toDir === '.' || $toDir === '' ? [] : explode('/', $toDir);
-
-        $commonLength = 0;
-        $minLength = min(count($fromParts), count($toParts));
-        for ($i = 0; $i < $minLength; $i++) {
-            if ($fromParts[$i] === $toParts[$i]) {
-                $commonLength++;
-            } else {
-                break;
-            }
-        }
-
-        $upLevels = count($fromParts) - $commonLength;
-        $downPath = array_slice($toParts, $commonLength);
-
-        $relativePath = '';
-        if ($upLevels > 0) {
-            $relativePath = str_repeat('../', $upLevels);
-        }
-
-        if (!empty($downPath)) {
-            $relativePath .= implode('/', $downPath) . '/';
-        }
-
-        $relativePath .= $toFile;
-
-        if (
-            !str_starts_with($relativePath, '.')
-            && !str_starts_with($relativePath, '/')
-        ) {
-            $relativePath = './' . $relativePath;
-        }
-
-        return $relativePath;
     }
 
     public function canTransform(

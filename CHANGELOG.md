@@ -5,6 +5,19 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2026-03-02
+
+### Added
+
+- Added `OutputPathResolver` to centralize namespace and FQCN to output path mapping.
+
+### Changed
+
+- **Breaking:** Switched schema/enum generation from namespace-level files to per-type files.
+- Output paths now mirror PHP namespace and type names directly (for example `App\\Data\\Events\\SessionEventOccurredData` -> `App/Data/Events/SessionEventOccurredData.ts`).
+- Updated import resolution to use deterministic FQCN-based target file paths.
+- Updated unit and integration tests to validate the new per-type output structure.
+
 ## [0.3.0] - 2026-03-02
 
 ### Changed

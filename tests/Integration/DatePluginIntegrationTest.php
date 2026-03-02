@@ -59,7 +59,7 @@ it('transforms Carbon type to Date in FileWriter with DatePlugin', function () {
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
     
-    $filePath = $this->outputDir . '/App/Data/Events.ts';
+    $filePath = $this->outputDir . '/App/Data/Events/SessionEventOccurredData.ts';
     expect(file_exists($filePath))->toBeTrue();
     
     $content = file_get_contents($filePath);
@@ -107,7 +107,7 @@ it('transforms Illuminate Carbon type to Date in FileWriter with DatePlugin', fu
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
     
-    $filePath = $this->outputDir . '/App/Data/Events.ts';
+    $filePath = $this->outputDir . '/App/Data/Events/TimerUpdatedData.ts';
     expect(file_exists($filePath))->toBeTrue();
     
     $content = file_get_contents($filePath);
@@ -158,7 +158,7 @@ it('transforms multiple Carbon properties in schema', function () {
     $writer = new FileWriter($root, $transformers, $this->outputDir);
     $writer->write();
     
-    $filePath = $this->outputDir . '/App/Data.ts';
+    $filePath = $this->outputDir . '/App/Data/ComplexData.ts';
     expect(file_exists($filePath))->toBeTrue();
     
     $content = file_get_contents($filePath);

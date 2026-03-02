@@ -20,11 +20,11 @@ declare(strict_types=1);
  * - Fixtures/src/app/Enums/ - Enum definitions (Role, EventType, QuestionType, etc.)
  * 
  * Output Structure (generated in temp directory):
- * - App/Data/Events.ts - Data classes from App\Data\Events namespace
- * - App/Data/Models.ts - Data classes from App\Data\Models namespace  
- * - App/Data/Requests.ts - Data classes from App\Data\Requests namespace
- * - App/Data/Response.ts - Data classes from App\Data\Response namespace
- * - App/Enums.ts - PHP enums from App\Enums namespace
+ * - App/Data/Events/SessionEventOccurredData.ts
+ * - App/Data/Models/UserData.ts
+ * - App/Data/Requests/CreateQuestionRequest.ts
+ * - App/Data/Response/TrackResponse.ts
+ * - App/Enums/Role.ts
  * - Illuminate/Pagination.ts - Pagination-related types (from LengthAwarePaginatorPlugin)
  * - EffectSchemaGenerator/Tests/Fixtures.ts - Root-level fixture classes
  */
@@ -70,28 +70,31 @@ it('discovers all fixture data classes', function () {
     $dataDir = $this->outputDir . '/App/Data';
     expect($dataDir)->toBeDirectory();
     
-    // Check for nested namespaces
-    expect(file_exists($dataDir . '/Events.ts'))->toBeTrue();
-    expect(file_exists($dataDir . '/Models.ts'))->toBeTrue();
-    expect(file_exists($dataDir . '/Requests.ts'))->toBeTrue();
-    expect(file_exists($dataDir . '/Response.ts'))->toBeTrue();
+    // Check for representative per-type files in each namespace directory
+    expect(file_exists($dataDir . '/Events/SessionEventOccurredData.ts'))->toBeTrue();
+    expect(file_exists($dataDir . '/Models/UserData.ts'))->toBeTrue();
+    expect(file_exists($dataDir . '/Requests/CreateQuestionRequest.ts'))->toBeTrue();
+    expect(file_exists($dataDir . '/Response/TrackResponse.ts'))->toBeTrue();
 });
 
 it('discovers all fixture enums', function () {
     $status = Artisan::call('effect-schema:transform');
     expect($status)->toBe(0);
     
-    // Check that enum file was generated
-    $enumFile = $this->outputDir . '/App/Enums.ts';
+    // Check that representative enum files were generated
+    $enumFile = $this->outputDir . '/App/Enums/Role.ts';
     expect(file_exists($enumFile))->toBeTrue();
     
     $content = file_get_contents($enumFile);
     
     // Check for expected enums (they're exported as type unions, not enum keyword)
     expect($content)->toContain('export type Role');
-    expect($content)->toContain('export type EventType');
-    expect($content)->toContain('export type QuestionType');
-    expect($content)->toContain('export type CredentialType');
+    $eventTypeFile = $this->outputDir . '/App/Enums/EventType.ts';
+    $questionTypeFile = $this->outputDir . '/App/Enums/QuestionType.ts';
+    $credentialTypeFile = $this->outputDir . '/App/Enums/CredentialType.ts';
+    expect(file_exists($eventTypeFile))->toBeTrue();
+    expect(file_exists($questionTypeFile))->toBeTrue();
+    expect(file_exists($credentialTypeFile))->toBeTrue();
 });
 
 it('generates valid TypeScript interfaces from data classes', function () {
@@ -99,7 +102,7 @@ it('generates valid TypeScript interfaces from data classes', function () {
     expect($status)->toBe(0);
     
     $dataDir = $this->outputDir . '/App/Data';
-    $eventFile = $dataDir . '/Events.ts';
+    $eventFile = $dataDir . '/Events/SessionEventOccurredData.ts';
     
     expect(file_exists($eventFile))->toBeTrue();
     
@@ -177,14 +180,13 @@ it('generates namespaced output matching PHP namespace structure', function () {
     $status = Artisan::call('effect-schema:transform');
     expect($status)->toBe(0);
     
-    // PHP: App\Data\Events\* -> TypeScript: App/Data/Events.ts
-    $eventFile = $this->outputDir . '/App/Data/Events.ts';
+    // PHP: App\Data\Events\SessionEventOccurredData -> App/Data/Events/SessionEventOccurredData.ts
+    $eventFile = $this->outputDir . '/App/Data/Events/SessionEventOccurredData.ts';
     expect(file_exists($eventFile))->toBeTrue();
     
     $content = file_get_contents($eventFile);
     
-    // Should contain multiple exported interfaces (one per class in namespace)
-    expect($content)->toMatch('/export interface/');
+    expect($content)->toContain('export interface SessionEventOccurredData');
 });
 
 it('includes proper imports for type references', function () {
@@ -193,8 +195,17 @@ it('includes proper imports for type references', function () {
     
     $dataDir = $this->outputDir . '/App/Data';
     
-    // Read any generated file that might have imports
-    $files = glob($dataDir . '/*.ts');
+    // Read generated files recursively and find one with imports.
+    $files = [];
+    $iterator = new RecursiveIteratorIterator(
+        new RecursiveDirectoryIterator($dataDir),
+        RecursiveIteratorIterator::SELF_FIRST
+    );
+    foreach ($iterator as $file) {
+        if ($file->isFile() && str_ends_with($file->getPathname(), '.ts')) {
+            $files[] = $file->getPathname();
+        }
+    }
     expect($files)->not->toBeEmpty();
     
     $hasImports = false;
@@ -249,7 +260,7 @@ it('generates readable TypeScript with proper formatting', function () {
     $status = Artisan::call('effect-schema:transform');
     expect($status)->toBe(0);
     
-    $eventFile = $this->outputDir . '/App/Data/Events.ts';
+    $eventFile = $this->outputDir . '/App/Data/Events/SessionEventOccurredData.ts';
     
     if (file_exists($eventFile)) {
         $content = file_get_contents($eventFile);

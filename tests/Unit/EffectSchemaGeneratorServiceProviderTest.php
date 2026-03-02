@@ -44,7 +44,8 @@ it('merges config from config file', function () {
     $config = config('effect-schema');
     
     expect($config)->toBeArray();
-    expect($config)->toHaveKey('paths');
+    expect($config)->toHaveKey('data_discoverers');
+    expect($config)->toHaveKey('enum_discoverers');
 });
 
 it('registers command when running in console', function () {

@@ -72,7 +72,7 @@ it('generates exact TypeScript output for SessionEventData with Lazy properties'
     $writer = new FileWriter($root, $plugins, $this->outputDir);
     $writer->write();
 
-    $filePath = $this->outputDir . '/App/Data/Models.ts';
+    $filePath = $this->outputDir . '/App/Data/Models/SessionEventData.ts';
     expect(file_exists($filePath))->toBeTrue();
 
     $content = file_get_contents($filePath);

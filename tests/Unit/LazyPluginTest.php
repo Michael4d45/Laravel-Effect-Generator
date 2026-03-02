@@ -220,7 +220,7 @@ it('generates exact TypeScript output for Lazy property in FileWriter', function
         $writer = new FileWriter($root, [$plugin], $outputDir);
         $writer->write();
         
-        $content = file_get_contents($outputDir . '/App/Data.ts');
+        $content = file_get_contents($outputDir . '/App/Data/ResponseData.ts');
         
         // The file now contains both interface and schema
         expect($content)->toContain('import { Schema as S } from \'effect\';');
@@ -266,7 +266,7 @@ it('generates exact TypeScript output for union with Lazy property in FileWriter
         $writer = new FileWriter($root, $plugins, $outputDir);
         $writer->write();
         
-        $content = file_get_contents($outputDir . '/App/Data.ts');
+        $content = file_get_contents($outputDir . '/App/Data/ResponseData.ts');
         
         // The file now contains both interface and schema
         expect($content)->toContain('import { Schema as S } from \'effect\';');
@@ -316,7 +316,7 @@ it('generates exact TypeScript output for complex union with Lazy in FileWriter'
         $writer = new FileWriter($root, $plugins, $outputDir);
         $writer->write();
         
-        $content = file_get_contents($outputDir . '/App/Data.ts');
+        $content = file_get_contents($outputDir . '/App/Data/ResponseData.ts');
         
         // The file now contains both interface and schema
         expect($content)->toContain('import { Schema as S } from \'effect\';');
@@ -356,7 +356,7 @@ it('generates exact TypeScript output for UserData fixture with Lazy properties'
         $writer = new FileWriter($root, $plugins, $outputDir);
         $writer->write();
         
-        $content = file_get_contents($outputDir . '/App/Data/Models.ts');
+        $content = file_get_contents($outputDir . '/App/Data/Models/UserData.ts');
         
         // Get the actual schema from the AST to build expected output
         $schema = $root->namespaces['App\Data\Models']->schemas[0] ?? null;
@@ -455,7 +455,7 @@ it('makes all properties optional when Optional attribute is on class', function
         $writer = new FileWriter($root, [$plugin], $outputDir);
         $writer->write();
 
-        $content = file_get_contents($outputDir . '/App/Data.ts');
+        $content = file_get_contents($outputDir . '/App/Data/OptionalClassData.ts');
 
         // Verify the interface exists
         expect($content)->toContain('export interface OptionalClassData');

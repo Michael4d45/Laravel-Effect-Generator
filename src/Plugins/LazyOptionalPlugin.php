@@ -342,12 +342,17 @@ class LazyOptionalPlugin implements Transformer
     {
         foreach ($attributes as $attribute) {
             if (
-                !($attribute->name === 'Spatie\\LaravelData\\Attributes\\Optional'
-                || $attribute->name
-                    === 'EffectSchemaGenerator\\Attributes\\Optional')
-            ) { continue; }
+                !(
+                    $attribute->name
+                    === 'Spatie\\LaravelData\\Attributes\\Optional'
+                    || $attribute->name
+                    === 'EffectSchemaGenerator\\Attributes\\Optional'
+                )
+            ) {
+                continue;
+            }
 
-return true;
+            return true;
         }
 
         return false;
