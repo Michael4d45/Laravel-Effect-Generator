@@ -5,6 +5,14 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2026-03-02
+
+### Fixed
+
+- Fixed missing sibling imports for unqualified class references (for example PHPDoc `EffortData` inside array properties).
+- Updated schema/interface import resolution to treat unqualified class names as same-directory type files.
+- Added regression coverage for unqualified sibling array references.
+
 ## [0.4.0] - 2026-03-02
 
 ### Added

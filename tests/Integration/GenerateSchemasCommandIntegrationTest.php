@@ -29,7 +29,6 @@ declare(strict_types=1);
  * - EffectSchemaGenerator/Tests/Fixtures.ts - Root-level fixture classes
  */
 
-use EffectSchemaGenerator\Commands\GenerateSchemasCommand;
 use EffectSchemaGenerator\Tests\TestCase;
 use Illuminate\Support\Facades\Artisan;
 

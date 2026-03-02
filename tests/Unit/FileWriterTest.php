@@ -300,6 +300,82 @@ it('handles arrays with item types', function () {
     expect($content)->toContain('readonly tags: readonly string[];');
 });
 
+it('imports sibling type for array of class references', function () {
+    $root = new RootIR;
+    $namespace = new NamespaceIR('App\\Data\\Models');
+
+    $effortSchema = new SchemaIR(
+        'EffortData',
+        [],
+        [new PropertyIR('id', new StringTypeIR)]
+    );
+
+    $effortTypeRef = new ClassReferenceTypeIR(
+        'App\\Data\\Models\\EffortData',
+        'EffortData',
+    );
+    $effortsArray = new ArrayTypeIR($effortTypeRef);
+    $effortTypeSchema = new SchemaIR(
+        'EffortTypeData',
+        [],
+        [new PropertyIR('efforts', $effortsArray, optional: true)]
+    );
+
+    $namespace->schemas[] = $effortSchema;
+    $namespace->schemas[] = $effortTypeSchema;
+    $root->namespaces['App\\Data\\Models'] = $namespace;
+
+    $writer = new FileWriter($root, [
+        new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+            new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter([])),
+            [],
+        ),
+        new \EffectSchemaGenerator\Writer\TypeEnumWriter,
+    ], $this->outputDir);
+    $writer->write();
+
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data\\Models', 'EffortTypeData'));
+    expect($content)->toContain("import { EffortData } from './EffortData';");
+    expect($content)->toContain('readonly efforts?: readonly EffortData[] | undefined;');
+});
+
+it('imports sibling type for unqualified array class references', function () {
+    $root = new RootIR;
+    $namespace = new NamespaceIR('App\\Data\\Models');
+
+    $effortSchema = new SchemaIR(
+        'EffortData',
+        [],
+        [new PropertyIR('id', new StringTypeIR)]
+    );
+
+    // Simulates PHPDoc parsing where type is unqualified (e.g. "EffortData").
+    $effortTypeRef = new ClassReferenceTypeIR('EffortData', 'EffortData');
+    $effortsArray = new ArrayTypeIR($effortTypeRef);
+    $effortTypeSchema = new SchemaIR(
+        'EffortTypeData',
+        [],
+        [new PropertyIR('efforts', $effortsArray, optional: true)]
+    );
+
+    $namespace->schemas[] = $effortSchema;
+    $namespace->schemas[] = $effortTypeSchema;
+    $root->namespaces['App\\Data\\Models'] = $namespace;
+
+    $writer = new FileWriter($root, [
+        new \EffectSchemaGenerator\Writer\DefaultSchemaWriter(
+            new \EffectSchemaGenerator\Writer\DefaultPropertyWriter(new \EffectSchemaGenerator\Writer\TypeScriptWriter([])),
+            [],
+        ),
+        new \EffectSchemaGenerator\Writer\TypeEnumWriter,
+    ], $this->outputDir);
+    $writer->write();
+
+    $content = file_get_contents(outputFile($this->outputDir, 'App\\Data\\Models', 'EffortTypeData'));
+    expect($content)->toContain("import { EffortData } from './EffortData';");
+    expect($content)->toContain('readonly efforts?: readonly EffortData[] | undefined;');
+});
+
 it('handles nested namespaces correctly', function () {
     $root = new RootIR;
 

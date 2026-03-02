@@ -74,7 +74,9 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                 continue;
             }
 
-            $targetFilePath = $this->pathResolver->fqcnFilePath($info['fqcn']);
+            $targetFilePath = str_contains($info['fqcn'], '\\')
+                ? $this->pathResolver->fqcnFilePath($info['fqcn'])
+                : dirname($currentFilePath) . '/' . $info['alias'] . '.ts';
             $relativePath = $this->pathResolver->relativeImportPath(
                 $currentFilePath,
                 $targetFilePath,
@@ -132,6 +134,7 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
                 && (
                     str_starts_with($type->fqcn, 'App\\')
                     || str_starts_with($type->fqcn, 'EffectSchemaGenerator\\')
+                    || !str_contains($type->fqcn, '\\')
                 )
             ) {
                 $referencedTypes[$type->fqcn] = [
