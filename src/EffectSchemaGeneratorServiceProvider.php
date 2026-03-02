@@ -30,10 +30,7 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/Config/config.php', 'effect-schema');
 
         $this->app->singleton(ClassDiscoverer::class, function ($app) {
-            $legacyPaths = array_map(
-                'strval',
-                config()->array('effect-schema.paths', []),
-            );
+            $legacyPaths = array_map('strval', config()->array('effect-schema.paths', []));
 
             $dataDiscoverers = $this->resolveConfiguredDataDiscoverers(
                 app: $app,
@@ -155,8 +152,10 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
      * @param  array<string>  $legacyPaths
      * @return list<EnumDiscoverer>
      */
-    private function resolveConfiguredEnumDiscoverers($app, array $legacyPaths): array
-    {
+    private function resolveConfiguredEnumDiscoverers(
+        $app,
+        array $legacyPaths,
+    ): array {
         $configured = config()->array('effect-schema.enum_discoverers', []);
 
         if ($configured === []) {

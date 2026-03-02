@@ -16,7 +16,7 @@ class NativeEnumDiscoverer implements EnumDiscoverer
      */
     public function __construct(
         private array $paths = [],
-        private ?PhpClassCandidateScanner $scanner = null,
+        private null|PhpClassCandidateScanner $scanner = null,
     ) {}
 
     /**

@@ -20,7 +20,7 @@ class ClassDiscoverer
         private array $paths = [],
         private array $dataClassDiscoverers = [],
         private array $enumDiscoverers = [],
-        private ?PhpClassCandidateScanner $scanner = null,
+        private null|PhpClassCandidateScanner $scanner = null,
     ) {}
 
     /**

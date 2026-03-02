@@ -29,7 +29,8 @@ return [
      */
     'data_discoverers' => [
         [
-            'class' => EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer::class,
+            'class' =>
+                EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer::class,
             'paths' => [
                 app_path('Data'),
             ],
@@ -47,7 +48,8 @@ return [
      */
     'enum_discoverers' => [
         [
-            'class' => EffectSchemaGenerator\Discovery\NativeEnumDiscoverer::class,
+            'class' =>
+                EffectSchemaGenerator\Discovery\NativeEnumDiscoverer::class,
             'paths' => [
                 app_path('Enums'),
             ],

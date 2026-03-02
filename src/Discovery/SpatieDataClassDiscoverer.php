@@ -16,7 +16,7 @@ class SpatieDataClassDiscoverer implements DataClassDiscoverer
      */
     public function __construct(
         private array $paths = [],
-        private ?PhpClassCandidateScanner $scanner = null,
+        private null|PhpClassCandidateScanner $scanner = null,
     ) {}
 
     /**
@@ -66,9 +66,14 @@ class SpatieDataClassDiscoverer implements DataClassDiscoverer
             $result = $analyzer->analyzeClass($className);
 
             $classResult = $result->result();
-            if ($classResult instanceof \Laravel\Surveyor\Analyzed\ClassResult) {
+            if (
+                $classResult instanceof \Laravel\Surveyor\Analyzed\ClassResult
+            ) {
                 $extends = $classResult->extends();
-                assert(is_array($extends), 'Extends should be an array of strings');
+                assert(
+                    is_array($extends),
+                    'Extends should be an array of strings',
+                );
 
                 return in_array('Spatie\\LaravelData\\Data', $extends, true);
             }
