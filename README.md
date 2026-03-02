@@ -210,11 +210,59 @@ export const RoleSchema = S.Union(
 
 ## Configuration
 
-See `config/effect-schema.php` for all available options, including:
+The published config now supports plugin-based discovery with separate
+discoverers for data classes and enums.
 
-- `paths`: Directories to scan for Data classes.
-- `transformers`: Custom type transformation logic.
-- `output_directory`: Where to save the generated TypeScript files.
+```php
+return [
+  // Legacy fallback paths (used when discoverer lists are empty)
+  'paths' => [
+    app_path('Data'),
+    app_path('Enums'),
+  ],
+
+  // Discoverers for Spatie Data classes
+  'data_discoverers' => [
+    [
+      'class' => EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer::class,
+      'paths' => [app_path('Data')],
+    ],
+  ],
+
+  // Discoverers for native PHP enums
+  'enum_discoverers' => [
+    [
+      'class' => EffectSchemaGenerator\Discovery\NativeEnumDiscoverer::class,
+      'paths' => [app_path('Enums')],
+    ],
+  ],
+
+  'transformers' => [
+    // ...
+  ],
+
+  'phpdoc_overrides_types' => true,
+
+  'output' => [
+    'directory' => resource_path('js/schemas'),
+    'file_extension' => '.ts',
+  ],
+];
+```
+
+Key options:
+
+- `data_discoverers`: list of discoverer definitions (`class` + `paths`) used to find Spatie Data classes.
+- `enum_discoverers`: list of discoverer definitions (`class` + `paths`) used to find PHP enums.
+- `paths`: legacy fallback list used if discoverer lists are not configured.
+- `transformers`: custom type transformation and writer plugins.
+- `output.directory`: destination for generated TypeScript files.
+- `output.file_extension`: generated file extension (default `.ts`).
+
+To add a custom discoverer plugin, implement either
+`EffectSchemaGenerator\Discovery\DataClassDiscoverer` or
+`EffectSchemaGenerator\Discovery\EnumDiscoverer`, then register it in the
+corresponding discoverer list.
 
 ## Testing
 

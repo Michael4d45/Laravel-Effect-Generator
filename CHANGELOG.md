@@ -5,6 +5,22 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.10] - 2026-03-02
+
+### Added
+
+- Added pluggable discovery contracts: `DataClassDiscoverer` and `EnumDiscoverer`.
+- Added default discoverer plugins: `SpatieDataClassDiscoverer` and `NativeEnumDiscoverer`.
+- Added `PhpClassCandidateScanner` for shared recursive PHP class candidate scanning.
+- Added configuration keys `data_discoverers` and `enum_discoverers` with per-discoverer `paths`.
+
+### Changed
+
+- Refactored `ClassDiscoverer` into an orchestrator that aggregates configured discoverer plugins.
+- Updated service container wiring to resolve discoverers from config entries (`class` + `paths`).
+- Preserved backward compatibility by falling back to legacy `effect-schema.paths` when discoverer lists are not configured.
+- Expanded tests to cover plugin aggregation and resilience when one discoverer fails.
+
 ## [0.2.9] - 2026-02-12
 
 ### Changed

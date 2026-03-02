@@ -3,13 +3,44 @@
 declare(strict_types=1);
 
 use EffectSchemaGenerator\Discovery\ClassDiscoverer;
+use EffectSchemaGenerator\Discovery\DataClassDiscoverer;
+use EffectSchemaGenerator\Discovery\EnumDiscoverer;
 
-beforeEach(function () {
-    $this->discoverer = app(ClassDiscoverer::class);
-});
+function makeDiscoverer(): ClassDiscoverer
+{
+    return app(ClassDiscoverer::class);
+}
+
+class TestPluginDataDiscoverer implements DataClassDiscoverer
+{
+    public function __construct(private array $classes) {}
+
+    public function discover(): \Illuminate\Support\Collection
+    {
+        return collect($this->classes);
+    }
+}
+
+class TestPluginEnumDiscoverer implements EnumDiscoverer
+{
+    public function __construct(private array $classes) {}
+
+    public function discover(): \Illuminate\Support\Collection
+    {
+        return collect($this->classes);
+    }
+}
+
+class FailingPluginDataDiscoverer implements DataClassDiscoverer
+{
+    public function discover(): \Illuminate\Support\Collection
+    {
+        throw new RuntimeException('boom');
+    }
+}
 
 it('discovers data classes', function () {
-    $classes = $this->discoverer->discoverDataClasses();
+    $classes = makeDiscoverer()->discoverDataClasses();
 
     expect($classes)->toBeInstanceOf(\Illuminate\Support\Collection::class);
     expect($classes->count())->toBeGreaterThan(0);
@@ -21,7 +52,7 @@ it('discovers data classes', function () {
 });
 
 it('discovers enums', function () {
-    $enums = $this->discoverer->discoverEnums();
+    $enums = makeDiscoverer()->discoverEnums();
 
     expect($enums)->toBeInstanceOf(\Illuminate\Support\Collection::class);
     expect($enums->count())->toBeGreaterThan(0);
@@ -123,4 +154,55 @@ PHP
     
     expect($classes)->toBeInstanceOf(\Illuminate\Support\Collection::class);
     // The fallback should still work
+});
+
+it('aggregates configured discovery plugins', function () {
+    $discoverer = new ClassDiscoverer(
+        paths: [],
+        dataClassDiscoverers: [
+            new TestPluginDataDiscoverer([
+                \EffectSchemaGenerator\Tests\Fixtures\UserData::class,
+                \EffectSchemaGenerator\Tests\Fixtures\AddressData::class,
+            ]),
+            new TestPluginDataDiscoverer([
+                \EffectSchemaGenerator\Tests\Fixtures\UserData::class,
+            ]),
+        ],
+        enumDiscoverers: [
+            new TestPluginEnumDiscoverer([
+                \EffectSchemaGenerator\Tests\Fixtures\Color::class,
+                \EffectSchemaGenerator\Tests\Fixtures\Priority::class,
+            ]),
+        ],
+    );
+
+    $classes = $discoverer->discoverDataClasses();
+    $enums = $discoverer->discoverEnums();
+
+    expect($classes->all())->toBe([
+        \EffectSchemaGenerator\Tests\Fixtures\UserData::class,
+        \EffectSchemaGenerator\Tests\Fixtures\AddressData::class,
+    ]);
+    expect($enums->all())->toBe([
+        \EffectSchemaGenerator\Tests\Fixtures\Color::class,
+        \EffectSchemaGenerator\Tests\Fixtures\Priority::class,
+    ]);
+});
+
+it('continues when a configured plugin fails', function () {
+    $discoverer = new ClassDiscoverer(
+        paths: [],
+        dataClassDiscoverers: [
+            new FailingPluginDataDiscoverer,
+            new TestPluginDataDiscoverer([
+                \EffectSchemaGenerator\Tests\Fixtures\UserData::class,
+            ]),
+        ],
+    );
+
+    $classes = $discoverer->discoverDataClasses();
+
+    expect($classes->all())->toBe([
+        \EffectSchemaGenerator\Tests\Fixtures\UserData::class,
+    ]);
 });

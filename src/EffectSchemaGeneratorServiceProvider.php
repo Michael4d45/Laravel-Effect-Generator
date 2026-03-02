@@ -8,6 +8,10 @@ use EffectSchemaGenerator\Builder\AstBuilder;
 use EffectSchemaGenerator\Commands\ClearCacheCommand;
 use EffectSchemaGenerator\Commands\GenerateSchemasCommand;
 use EffectSchemaGenerator\Discovery\ClassDiscoverer;
+use EffectSchemaGenerator\Discovery\DataClassDiscoverer;
+use EffectSchemaGenerator\Discovery\EnumDiscoverer;
+use EffectSchemaGenerator\Discovery\NativeEnumDiscoverer;
+use EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer;
 use EffectSchemaGenerator\Reflection\DataClassParser;
 use EffectSchemaGenerator\Reflection\EnumParser;
 use EffectSchemaGenerator\Writer\DefaultPropertyWriter;
@@ -26,9 +30,25 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/Config/config.php', 'effect-schema');
 
         $this->app->singleton(ClassDiscoverer::class, function ($app) {
-            $paths = array_map('strval', config()->array('effect-schema.paths', []));
+            $legacyPaths = array_map(
+                'strval',
+                config()->array('effect-schema.paths', []),
+            );
 
-            return new ClassDiscoverer($paths);
+            $dataDiscoverers = $this->resolveConfiguredDataDiscoverers(
+                app: $app,
+                legacyPaths: $legacyPaths,
+            );
+            $enumDiscoverers = $this->resolveConfiguredEnumDiscoverers(
+                app: $app,
+                legacyPaths: $legacyPaths,
+            );
+
+            return new ClassDiscoverer(
+                paths: $legacyPaths,
+                dataClassDiscoverers: $dataDiscoverers,
+                enumDiscoverers: $enumDiscoverers,
+            );
         });
 
         $this->app->singleton(DataClassParser::class, function ($app) {
@@ -81,5 +101,99 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
                 ),
             ], 'effect-schema-config');
         }
+    }
+
+    /**
+     * @param  array<string>  $legacyPaths
+     * @return list<DataClassDiscoverer>
+     */
+    private function resolveConfiguredDataDiscoverers(
+        $app,
+        array $legacyPaths,
+    ): array {
+        $configured = config()->array('effect-schema.data_discoverers', []);
+
+        if ($configured === []) {
+            $configured = [
+                [
+                    'class' => SpatieDataClassDiscoverer::class,
+                    'paths' => $legacyPaths,
+                ],
+            ];
+        }
+
+        /** @var list<DataClassDiscoverer> $discoverers */
+        $discoverers = [];
+        foreach ($configured as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $class = $entry['class'] ?? null;
+            if (!is_string($class) || $class === '') {
+                continue;
+            }
+
+            $paths = $entry['paths'] ?? [];
+            if (!is_array($paths)) {
+                $paths = [];
+            }
+
+            $discoverer = $app->makeWith($class, [
+                'paths' => array_map('strval', $paths),
+            ]);
+
+            if ($discoverer instanceof DataClassDiscoverer) {
+                $discoverers[] = $discoverer;
+            }
+        }
+
+        return $discoverers;
+    }
+
+    /**
+     * @param  array<string>  $legacyPaths
+     * @return list<EnumDiscoverer>
+     */
+    private function resolveConfiguredEnumDiscoverers($app, array $legacyPaths): array
+    {
+        $configured = config()->array('effect-schema.enum_discoverers', []);
+
+        if ($configured === []) {
+            $configured = [
+                [
+                    'class' => NativeEnumDiscoverer::class,
+                    'paths' => $legacyPaths,
+                ],
+            ];
+        }
+
+        /** @var list<EnumDiscoverer> $discoverers */
+        $discoverers = [];
+        foreach ($configured as $entry) {
+            if (!is_array($entry)) {
+                continue;
+            }
+
+            $class = $entry['class'] ?? null;
+            if (!is_string($class) || $class === '') {
+                continue;
+            }
+
+            $paths = $entry['paths'] ?? [];
+            if (!is_array($paths)) {
+                $paths = [];
+            }
+
+            $discoverer = $app->makeWith($class, [
+                'paths' => array_map('strval', $paths),
+            ]);
+
+            if ($discoverer instanceof EnumDiscoverer) {
+                $discoverers[] = $discoverer;
+            }
+        }
+
+        return $discoverers;
     }
 }

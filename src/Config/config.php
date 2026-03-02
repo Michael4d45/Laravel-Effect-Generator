@@ -20,6 +20,42 @@ return [
 
     /*
      |--------------------------------------------------------------------------
+     | Data Class Discoverers
+     |--------------------------------------------------------------------------
+     |
+     | Configure discoverer plugins used to find Spatie Data classes.
+     | Each discoverer receives its own path list, which allows targeted scans.
+     |
+     */
+    'data_discoverers' => [
+        [
+            'class' => EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer::class,
+            'paths' => [
+                app_path('Data'),
+            ],
+        ],
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
+     | Enum Discoverers
+     |--------------------------------------------------------------------------
+     |
+     | Configure discoverer plugins used to find native PHP enums.
+     | Each discoverer receives its own path list, which allows targeted scans.
+     |
+     */
+    'enum_discoverers' => [
+        [
+            'class' => EffectSchemaGenerator\Discovery\NativeEnumDiscoverer::class,
+            'paths' => [
+                app_path('Enums'),
+            ],
+        ],
+    ],
+
+    /*
+     |--------------------------------------------------------------------------
      | Enabled Transformers
      |--------------------------------------------------------------------------
      |

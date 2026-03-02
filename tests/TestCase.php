@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace EffectSchemaGenerator\Tests;
 
+use EffectSchemaGenerator\Discovery\NativeEnumDiscoverer;
+use EffectSchemaGenerator\Discovery\SpatieDataClassDiscoverer;
 use EffectSchemaGenerator\EffectSchemaGeneratorServiceProvider;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
 
@@ -19,9 +21,26 @@ abstract class TestCase extends OrchestraTestCase
     protected function defineEnvironment($app)
     {
         // Setup default config for testing
-        $app['config']->set('effect-schema.paths', [
+        $paths = [
             __DIR__ . '/Fixtures',
-            __DIR__ . '/Fixtures/src/app',
+        ];
+
+        $app['config']->set('effect-schema.paths', [
+            ...$paths,
+        ]);
+
+        $app['config']->set('effect-schema.data_discoverers', [
+            [
+                'class' => SpatieDataClassDiscoverer::class,
+                'paths' => $paths,
+            ],
+        ]);
+
+        $app['config']->set('effect-schema.enum_discoverers', [
+            [
+                'class' => NativeEnumDiscoverer::class,
+                'paths' => $paths,
+            ],
         ]);
 
         $app['config']->set(
