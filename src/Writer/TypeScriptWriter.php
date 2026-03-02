@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace EffectSchemaGenerator\Writer;
 
-use EffectSchemaGenerator\IR\PropertyIR;
+
 use EffectSchemaGenerator\IR\TypeIR;
 
 /**

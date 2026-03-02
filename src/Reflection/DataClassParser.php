@@ -114,7 +114,7 @@ class DataClassParser
         foreach (array_merge($parents, $traits) as $related) {
             $relatedUses = $this->analyzeUses($related->getName());
             if ($relatedUses !== []) {
-                $uses = $uses + $relatedUses;
+                $uses += $relatedUses;
             }
         }
 
