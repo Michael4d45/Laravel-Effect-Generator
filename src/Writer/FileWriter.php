@@ -33,7 +33,8 @@ class FileWriter
         $this->outputDirectory = $outputDirectory ?: resource_path(
             'ts/schemas',
         );
-        $this->clearOutputDirectoryBeforeWrite = $clearOutputDirectoryBeforeWrite;
+        $this->clearOutputDirectoryBeforeWrite =
+            $clearOutputDirectoryBeforeWrite;
         $this->pathResolver =
             new \EffectSchemaGenerator\Writer\OutputPathResolver;
 
