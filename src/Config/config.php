@@ -95,5 +95,6 @@ return [
     'output' => [
         'directory' => resource_path('js/schemas'),
         'file_extension' => '.ts',
+        'clear_output_directory_before_write' => true,
     ],
 ];

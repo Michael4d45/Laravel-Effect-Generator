@@ -239,6 +239,7 @@ return [
   'output' => [
     'directory' => resource_path('js/schemas'),
     'file_extension' => '.ts',
+    'clear_output_directory_before_write' => true,
   ],
 ];
 ```
@@ -250,6 +251,7 @@ Key options:
 - `transformers`: custom type transformation and writer plugins.
 - `output.directory`: destination for generated TypeScript files.
 - `output.file_extension`: generated file extension (default `.ts`).
+- `output.clear_output_directory_before_write`: when `true`, delete current output directory contents before writing new files.
 
 To add a custom discoverer plugin, implement either
 `EffectSchemaGenerator\Discovery\DataClassDiscoverer` or

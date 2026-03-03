@@ -14,22 +14,26 @@ class FileWriter
     private array $transformers;
     private FileContentWriter $fileContentWriter;
     private string $outputDirectory;
+    private bool $clearOutputDirectoryBeforeWrite;
     private \EffectSchemaGenerator\Writer\OutputPathResolver $pathResolver;
 
     /**
      * @param RootIR $ast The root IR to generate files for
      * @param list<Transformer> $transformers Transformers to use for generation
      * @param string $outputDirectory Output directory
+     * @param bool $clearOutputDirectoryBeforeWrite Whether to clear output directory contents before writing
      */
     public function __construct(
         private RootIR $ast,
         array $transformers,
         string $outputDirectory = '',
+        bool $clearOutputDirectoryBeforeWrite = false,
     ) {
         $this->transformers = $transformers;
         $this->outputDirectory = $outputDirectory ?: resource_path(
             'ts/schemas',
         );
+        $this->clearOutputDirectoryBeforeWrite = $clearOutputDirectoryBeforeWrite;
         $this->pathResolver =
             new \EffectSchemaGenerator\Writer\OutputPathResolver;
 
@@ -44,6 +48,10 @@ class FileWriter
      */
     public function write(): void
     {
+        if ($this->clearOutputDirectoryBeforeWrite) {
+            $this->clearOutputDirectoryContents();
+        }
+
         // Preprocess properties using transformers
         $this->preprocessAst();
 
@@ -66,6 +74,55 @@ class FileWriter
             $content = rtrim($content) . "\n";
             file_put_contents($fullPath, $content);
         }
+    }
+
+    /**
+     * Delete all files and directories within the configured output directory.
+     */
+    private function clearOutputDirectoryContents(): void
+    {
+        if (!is_dir($this->outputDirectory)) {
+            return;
+        }
+
+        $entries = scandir($this->outputDirectory);
+        if ($entries === false) {
+            return;
+        }
+
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            $path = $this->outputDirectory . '/' . $entry;
+            $this->deletePathRecursively($path);
+        }
+    }
+
+    private function deletePathRecursively(string $path): void
+    {
+        if (is_link($path) || is_file($path)) {
+            @unlink($path);
+            return;
+        }
+
+        if (!is_dir($path)) {
+            return;
+        }
+
+        $entries = scandir($path);
+        if ($entries !== false) {
+            foreach ($entries as $entry) {
+                if ($entry === '.' || $entry === '..') {
+                    continue;
+                }
+
+                $this->deletePathRecursively($path . '/' . $entry);
+            }
+        }
+
+        @rmdir($path);
     }
 
     /**

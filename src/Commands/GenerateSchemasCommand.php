@@ -96,12 +96,21 @@ class GenerateSchemasCommand extends Command
         $transformers = $this->loadTransformers();
         $outputDirectory =
             $this->config['output']['directory'] ?? resource_path('ts/schemas');
+        $clearOutputDirectoryBeforeWrite = (bool) (
+            $this->config['output']['clear_output_directory_before_write']
+            ?? false
+        );
 
         if (empty($transformers)) {
             $this->warn('No transformers configured. Using default behavior.');
         }
 
-        $fileWriter = new FileWriter($ast, $transformers, $outputDirectory);
+        $fileWriter = new FileWriter(
+            ast: $ast,
+            transformers: $transformers,
+            outputDirectory: $outputDirectory,
+            clearOutputDirectoryBeforeWrite: $clearOutputDirectoryBeforeWrite,
+        );
         $fileWriter->write();
 
         $this->info('Schema generation completed successfully!');

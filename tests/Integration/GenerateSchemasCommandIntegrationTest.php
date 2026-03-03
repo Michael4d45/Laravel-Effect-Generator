@@ -175,6 +175,28 @@ it('respects configured output directory', function () {
     }
 });
 
+it('clears existing output directory contents before writing when enabled', function () {
+    $staleRootFile = $this->outputDir . '/stale-file.ts';
+    $staleNestedDir = $this->outputDir . '/old/subdir';
+    $staleNestedFile = $staleNestedDir . '/stale.txt';
+
+    mkdir($staleNestedDir, 0755, true);
+    file_put_contents($staleRootFile, 'stale');
+    file_put_contents($staleNestedFile, 'stale');
+
+    config([
+        'effect-schema.output.clear_output_directory_before_write' => true,
+    ]);
+
+    $status = Artisan::call('effect-schema:transform');
+
+    expect($status)->toBe(0);
+    expect(file_exists($staleRootFile))->toBeFalse();
+    expect(file_exists($staleNestedFile))->toBeFalse();
+    expect($this->outputDir . '/App/Data/Events/SessionEventOccurredData.ts')
+        ->toBeFile();
+});
+
 it('generates namespaced output matching PHP namespace structure', function () {
     $status = Artisan::call('effect-schema:transform');
     expect($status)->toBe(0);
