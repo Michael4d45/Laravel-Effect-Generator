@@ -157,7 +157,7 @@ it('generates imports for referenced types', function () {
     $writer->write();
 
     $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
-    expect($content)->toContain("import { Color } from '../Enums/Color';");
+    expect($content)->toContain("import { type Color } from '../Enums/Color';");
     expect($content)->toContain('readonly favoriteColor: Color;');
 });
 
@@ -189,7 +189,7 @@ it('does not import types already in the same file', function () {
 
     $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'ProfileData'));
     // In per-type files, ProfileData imports UserData from the sibling file.
-    expect($content)->toContain("import { UserData } from './UserData';");
+    expect($content)->toContain("import { type UserData } from './UserData';");
     expect($content)->toContain('readonly user: UserData;');
 });
 
@@ -240,7 +240,7 @@ it('generates imports for transformer-provided types', function () {
 
     $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UsersResponse'));
     // Should import LengthAwarePaginator from the transformer file
-    expect($content)->toContain("import { LengthAwarePaginator, LengthAwarePaginatorSchema } from '../../Illuminate/Pagination';");
+    expect($content)->toContain("import { type LengthAwarePaginator, LengthAwarePaginatorSchema } from '../../Illuminate/Pagination';");
     expect($content)->toContain('readonly users: LengthAwarePaginator<UserData>;');
 });
 
@@ -335,7 +335,7 @@ it('imports sibling type for array of class references', function () {
     $writer->write();
 
     $content = file_get_contents(outputFile($this->outputDir, 'App\\Data\\Models', 'EffortTypeData'));
-    expect($content)->toContain("import { EffortData } from './EffortData';");
+    expect($content)->toContain("import { type EffortData } from './EffortData';");
     expect($content)->toContain('readonly efforts?: readonly EffortData[] | undefined;');
 });
 
@@ -372,7 +372,7 @@ it('imports sibling type for unqualified array class references', function () {
     $writer->write();
 
     $content = file_get_contents(outputFile($this->outputDir, 'App\\Data\\Models', 'EffortTypeData'));
-    expect($content)->toContain("import { EffortData } from './EffortData';");
+    expect($content)->toContain("import { type EffortData } from './EffortData';");
     expect($content)->toContain('readonly efforts?: readonly EffortData[] | undefined;');
 });
 
@@ -579,7 +579,7 @@ it('generates exact TypeScript output with imports', function () {
 
     $content = file_get_contents(outputFile($this->outputDir, 'App\\Data', 'UserData'));
     $expected = <<<'TS'
-import { Status } from '../Enums/Status';
+import { type Status } from '../Enums/Status';
 export interface UserData {
   readonly id: string;
   readonly status: Status;
