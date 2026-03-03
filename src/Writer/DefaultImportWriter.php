@@ -31,7 +31,9 @@ class DefaultImportWriter implements ImportWriter
             // Sort names for consistent output
             ksort($names);
             $namesList = implode(', ', array_map(
-                fn(string $name) => str_ends_with($name, 'Schema') ? $name : "type {$name}",
+                fn(string $name) => str_ends_with($name, 'Schema')
+                    ? $name
+                    : "type {$name}",
                 array_keys($names),
             ));
             $importLines[] = "import { {$namesList} } from '{$importPath}';";
