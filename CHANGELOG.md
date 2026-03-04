@@ -5,6 +5,14 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.2] - 2026-03-03
+
+### Added
+
+- Added `#[SnakeCase]` attribute (`EffectSchemaGenerator\Attributes\SnakeCase`) for opt-in snake_case conversion of property names in generated TypeScript output. Supports both property-level and class-level usage.
+- Added `SnakeCaseAttributePlugin` — transforms property names to snake_case only when the `#[SnakeCase]` attribute is present on the property or class. Registered by default in config.
+- Added `SnakeCasePlugin` — unconditionally transforms all property names to snake_case globally. Can be swapped in via config for projects that want snake_case everywhere without attributes.
+
 ## [0.5.1] - 2026-03-03
 
 - Output type imports. e.g. `import { type User } from './UserData.php'` rather than  `import { User } from './UserData.php'`
