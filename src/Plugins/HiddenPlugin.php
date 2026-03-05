@@ -71,13 +71,17 @@ class HiddenPlugin implements Transformer
         return null;
     }
 
-    private function shouldExcludeProperty(PropertyIR $property, array $attributes): bool
-    {
+    private function shouldExcludeProperty(
+        PropertyIR $property,
+        array $attributes,
+    ): bool {
         $propertyAttributes = $attributes['property'] ?? $property->attributes;
         $classAttributes = $attributes['class'] ?? [];
 
-        return $this->hasExcludeAttribute($propertyAttributes)
-            || $this->hasExcludeAttribute($classAttributes);
+        return (
+            $this->hasExcludeAttribute($propertyAttributes)
+            || $this->hasExcludeAttribute($classAttributes)
+        );
     }
 
     /**

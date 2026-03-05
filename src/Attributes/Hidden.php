@@ -39,7 +39,5 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_CLASS)]
 class Hidden
 {
-    public function __construct()
-    {
-    }
+    public function __construct() {}
 }

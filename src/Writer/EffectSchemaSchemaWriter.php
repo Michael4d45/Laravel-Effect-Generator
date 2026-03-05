@@ -126,7 +126,10 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
             $imports[$relativePath]["{$name}Schema"] = "{$name}Schema";
             $imports[$relativePath][$name] = $name;
 
-            if (!($info['isEnum'] ?? false) && $this->referencedTypeExportsEncodedVariant($fqcn)) {
+            if (
+                !($info['isEnum'] ?? false)
+                && $this->referencedTypeExportsEncodedVariant($fqcn)
+            ) {
                 $imports[$relativePath]["{$name}Encoded"] = "{$name}Encoded";
             }
         }
@@ -287,7 +290,8 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
             $result[] = [
                 'fqcn' => $fqcn,
                 'alias' => $info['alias'],
-                'transformer_path' => $this->getTransformerFilePathForType($fqcn),
+                'transformer_path' =>
+                    $this->getTransformerFilePathForType($fqcn),
             ];
         }
         return $result;

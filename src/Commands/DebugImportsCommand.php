@@ -54,11 +54,17 @@ class DebugImportsCommand extends Command
         if ($targetClass === null || $targetClass === '') {
             $targetClass = $this->findClassWithPaginator($transformers);
             if ($targetClass === null) {
-                $this->warn('No class given and none found that references LengthAwarePaginator.');
-                $this->line('Run: php artisan effect-schema:debug-imports "App\\Features\\Recipe\\Responses\\ListRecipesResponse"');
+                $this->warn(
+                    'No class given and none found that references LengthAwarePaginator.',
+                );
+                $this->line(
+                    'Run: php artisan effect-schema:debug-imports "App\\Features\\Recipe\\Responses\\ListRecipesResponse"',
+                );
                 return self::FAILURE;
             }
-            $this->line("Using first discovered class that references LengthAwarePaginator: <info>{$targetClass}</info>");
+            $this->line(
+                "Using first discovered class that references LengthAwarePaginator: <info>{$targetClass}</info>",
+            );
             $this->line('');
         }
 
@@ -87,8 +93,11 @@ class DebugImportsCommand extends Command
             return self::FAILURE;
         }
 
-        $pathResolver = new OutputPathResolver();
-        $filePath = $pathResolver->schemaFilePath($namespace->namespace, $schema->name);
+        $pathResolver = new OutputPathResolver;
+        $filePath = $pathResolver->schemaFilePath(
+            $namespace->namespace,
+            $schema->name,
+        );
         $localSchemas = [$schema->name => $schema];
         $localEnums = [];
 
@@ -101,8 +110,12 @@ class DebugImportsCommand extends Command
         }
         $this->line('');
 
-        $this->line('=== For each referenced type: does a transformer provide the file? ===');
-        $this->line('(If "path = null", we fall into the non-transformer branch and add *Encoded to imports.)');
+        $this->line(
+            '=== For each referenced type: does a transformer provide the file? ===',
+        );
+        $this->line(
+            '(If "path = null", we fall into the non-transformer branch and add *Encoded to imports.)',
+        );
         $this->line('');
 
         foreach ($decisions as $d) {
@@ -111,7 +124,9 @@ class DebugImportsCommand extends Command
             $fqcn = $d['fqcn'];
             if ($path === null) {
                 $this->line("  <fg=red>{$alias}</> ({$fqcn})");
-                $this->line("    -> path = <fg=red>null</> (will add {$alias}Encoded to imports)");
+                $this->line(
+                    "    -> path = <fg=red>null</> (will add {$alias}Encoded to imports)",
+                );
             } else {
                 $this->line("  <fg=green>{$alias}</> ({$fqcn})");
                 $this->line("    -> path = {$path}");
@@ -121,12 +136,21 @@ class DebugImportsCommand extends Command
 
         // Run writeSchema and show what actually gets added to imports (especially Pagination)
         $imports = [];
-        $writer->writeSchema($schema, $filePath, $localSchemas, $localEnums, $imports);
+        $writer->writeSchema(
+            $schema,
+            $filePath,
+            $localSchemas,
+            $localEnums,
+            $imports,
+        );
 
-        $this->line('=== Imports actually added by EffectSchemaSchemaWriter ===');
+        $this->line(
+            '=== Imports actually added by EffectSchemaSchemaWriter ===',
+        );
         foreach ($imports as $relativePath => $names) {
             $namesList = implode(', ', array_keys($names));
-            $highlight = str_contains($relativePath, 'Pagination') || str_contains($namesList, 'LengthAwarePaginator')
+            $highlight = str_contains($relativePath, 'Pagination')
+            || str_contains($namesList, 'LengthAwarePaginator')
                 ? ' <-- Pagination'
                 : '';
             $this->line("  {$relativePath}");
@@ -141,13 +165,25 @@ class DebugImportsCommand extends Command
                 break;
             }
         }
-        if ($paginationKey !== null && array_key_exists('LengthAwarePaginatorEncoded', $imports[$paginationKey])) {
-            $this->line('<fg=red>LengthAwarePaginatorEncoded is in the Pagination import (wrong – plugin file does not export it).</>');
-            $this->line('Cause: getTransformerFilePathForType(Illuminate\Pagination\LengthAwarePaginator) returned null above.');
+        if (
+            $paginationKey !== null
+            && array_key_exists(
+                'LengthAwarePaginatorEncoded',
+                $imports[$paginationKey],
+            )
+        ) {
+            $this->line(
+                '<fg=red>LengthAwarePaginatorEncoded is in the Pagination import (wrong – plugin file does not export it).</>',
+            );
+            $this->line(
+                'Cause: getTransformerFilePathForType(Illuminate\Pagination\LengthAwarePaginator) returned null above.',
+            );
             return self::FAILURE;
         }
 
-        $this->line('<fg=green>Pagination import does not include LengthAwarePaginatorEncoded (correct).</>');
+        $this->line(
+            '<fg=green>Pagination import does not include LengthAwarePaginatorEncoded (correct).</>',
+        );
         return self::SUCCESS;
     }
 
@@ -162,24 +198,33 @@ class DebugImportsCommand extends Command
         foreach ($transformersConfig as $transformerClass) {
             try {
                 $transformer = app($transformerClass);
-                if ($transformer instanceof \EffectSchemaGenerator\Writer\Transformer) {
+                if (
+                    $transformer
+                    instanceof \EffectSchemaGenerator\Writer\Transformer
+                ) {
                     $transformers[] = $transformer;
                 }
             } catch (\Throwable $e) {
-                $this->warn("Could not instantiate {$transformerClass}: " . $e->getMessage());
+                $this->warn(
+                    "Could not instantiate {$transformerClass}: "
+                        . $e->getMessage(),
+                );
             }
         }
         return $transformers;
     }
 
-    private function findClassWithPaginator(array $transformers): ?string
+    private function findClassWithPaginator(array $transformers): null|string
     {
         $dataClasses = $this->discoverer->discoverDataClasses();
         $paginatorFqcn = 'Illuminate\Pagination\LengthAwarePaginator';
 
         foreach ($dataClasses as $class) {
             try {
-                if (!class_exists($class) || !is_subclass_of($class, 'Spatie\LaravelData\Data')) {
+                if (
+                    !class_exists($class)
+                    || !is_subclass_of($class, 'Spatie\LaravelData\Data')
+                ) {
                     continue;
                 }
                 $token = $this->dataParser->parse($class);
@@ -187,7 +232,10 @@ class DebugImportsCommand extends Command
                 foreach ($ast->namespaces as $ns) {
                     foreach ($ns->schemas as $schema) {
                         foreach ($schema->properties as $property) {
-                            if ($this->typeReferencesFqcn($property->type, $paginatorFqcn)) {
+                            if ($this->typeReferencesFqcn(
+                                $property->type,
+                                $paginatorFqcn,
+                            )) {
                                 return $class;
                             }
                         }
@@ -200,9 +248,14 @@ class DebugImportsCommand extends Command
         return null;
     }
 
-    private function typeReferencesFqcn(\EffectSchemaGenerator\IR\TypeIR $type, string $fqcn): bool
-    {
-        if ($type instanceof \EffectSchemaGenerator\IR\Types\ClassReferenceTypeIR) {
+    private function typeReferencesFqcn(
+        \EffectSchemaGenerator\IR\TypeIR $type,
+        string $fqcn,
+    ): bool {
+        if (
+            $type
+            instanceof \EffectSchemaGenerator\IR\Types\ClassReferenceTypeIR
+        ) {
             if ($type->fqcn === $fqcn) {
                 return true;
             }
@@ -222,7 +275,10 @@ class DebugImportsCommand extends Command
                 }
             }
         }
-        if ($type instanceof \EffectSchemaGenerator\IR\Types\ArrayTypeIR && $type->itemType !== null) {
+        if (
+            $type instanceof \EffectSchemaGenerator\IR\Types\ArrayTypeIR
+            && $type->itemType !== null
+        ) {
             return $this->typeReferencesFqcn($type->itemType, $fqcn);
         }
         return false;
