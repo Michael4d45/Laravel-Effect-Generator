@@ -187,6 +187,9 @@ class TypeTransformer
         if ($type instanceof StructTypeIR) {
             $properties = [];
             foreach ($type->properties as $property) {
+                if ($property->hidden) {
+                    continue;
+                }
                 $propType = $recurse($property->type);
                 $name = $property->name;
                 $optional = $property->optional ? '?' : '';

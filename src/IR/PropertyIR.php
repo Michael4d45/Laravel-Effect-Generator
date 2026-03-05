@@ -15,7 +15,16 @@ class PropertyIR
         public bool $nullable = false,
         public bool $optional = false,
         public array $attributes = [],
+        public bool $hidden = false,
     ) {}
+
+    /**
+     * Returns true if this property should be excluded from generated output.
+     */
+    public function isHidden(): bool
+    {
+        return $this->hidden;
+    }
 
     public function toArray(): array
     {
@@ -34,6 +43,10 @@ class PropertyIR
 
         if ($this->optional) {
             $result['optional'] = true;
+        }
+
+        if ($this->hidden) {
+            $result['hidden'] = true;
         }
 
         return $result;

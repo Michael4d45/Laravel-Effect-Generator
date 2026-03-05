@@ -5,6 +5,19 @@ All notable changes to `michael4d45/effect-schema-generator` will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.4] - 2026-03-05
+
+### Added
+
+- Added `#[Hidden]` attribute (`EffectSchemaGenerator\Attributes\Hidden`) to exclude properties from generated TypeScript interfaces and schemas. Supports both property-level and class-level usage.
+- Added `HiddenPlugin` — marks properties with `#[Hidden]` or Spatie's `#[Computed]` so they are omitted from generated output (computed properties are derived at runtime and not part of the serialized payload). Registered by default in config.
+
+## [0.5.3] - 2026-03-05
+
+### Added
+
+- Added `effect-schema:debug-imports` command to diagnose schema import behaviour. Run with an optional Data class FQCN (e.g. `php artisan effect-schema:debug-imports "App\Features\Recipe\Responses\ListRecipesResponse"`). The command prints: configured transformers in order; all referenced types for that schema; for each type, whether a transformer provides its file (path or `null` — when `null`, the writer adds `*Encoded` to imports); and the imports actually added by `EffectSchemaSchemaWriter`. Use it to trace why a type like `LengthAwarePaginatorEncoded` appears when the Pagination plugin does not export it (e.g. transformer path missing or wrong config).
+
 ## [0.5.2] - 2026-03-03
 
 ### Added
@@ -14,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `SnakeCasePlugin` — unconditionally transforms all property names to snake_case globally. Can be swapped in via config for projects that want snake_case everywhere without attributes.
 
 ## [0.5.1] - 2026-03-03
+
+### Fixed
 
 - Output type imports. e.g. `import { type User } from './UserData.php'` rather than  `import { User } from './UserData.php'`
 

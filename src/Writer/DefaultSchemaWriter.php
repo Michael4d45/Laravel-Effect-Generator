@@ -43,6 +43,9 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
         $referencedTypes = [];
 
         foreach ($schema->properties as $property) {
+            if ($property->hidden) {
+                continue;
+            }
             $this->collectReferencedTypes($property->type, $referencedTypes);
             $propertyStr = $this->propertyWriter->writeProperty($property);
             $properties[] = $propertyStr;
@@ -161,6 +164,9 @@ class DefaultSchemaWriter implements SchemaWriter, Transformer
             $this->collectReferencedTypes($type->valueType, $referencedTypes);
         } elseif ($type instanceof StructTypeIR) {
             foreach ($type->properties as $property) {
+                if ($property->hidden) {
+                    continue;
+                }
                 $this->collectReferencedTypes(
                     $property->type,
                     $referencedTypes,

@@ -56,6 +56,7 @@ return [
         // Plugins that transform types
         EffectSchemaGenerator\Plugins\LengthAwarePaginatorPlugin::class,
         EffectSchemaGenerator\Plugins\LazyOptionalPlugin::class,
+        EffectSchemaGenerator\Plugins\HiddenPlugin::class,
         EffectSchemaGenerator\Plugins\SnakeCaseAttributePlugin::class,
         EffectSchemaGenerator\Plugins\DatePlugin::class,
         EffectSchemaGenerator\Plugins\CollectionPlugin::class,

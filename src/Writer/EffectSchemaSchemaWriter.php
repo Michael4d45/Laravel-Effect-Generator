@@ -45,6 +45,9 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         );
 
         foreach ($schema->properties as $property) {
+            if ($property->hidden) {
+                continue;
+            }
             $this->collectReferencedTypes($property->type, $referencedTypes);
             $schemaType = $this->typeToEffectSchema(
                 $property->type,
@@ -274,6 +277,9 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
     {
         $referencedTypes = [];
         foreach ($schema->properties as $property) {
+            if ($property->hidden) {
+                continue;
+            }
             $this->collectReferencedTypes($property->type, $referencedTypes);
         }
         $result = [];
