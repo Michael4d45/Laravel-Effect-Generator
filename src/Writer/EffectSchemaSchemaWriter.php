@@ -69,7 +69,17 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
             $properties[] = "  {$property->name}: {$schemaType}";
         }
 
-        // Add imports for referenced schema types (we import the Schema, not the type)
+        // Add imports for referenced schema types.
+        //
+        // Two branches:
+        // 1) Transformer branch: a plugin provides the type's file (e.g. LengthAwarePaginator → Illuminate/Pagination.ts).
+        //    We only add Schema + type name. We must NOT add *Encoded — the plugin file does not export it.
+        // 2) Non-transformer branch: type is from App\Data etc. We add Schema, type, and Encoded.
+        //
+        // If LengthAwarePaginatorEncoded appears in generated output, getTransformerFilePathForType()
+        // returned null for that type (so we fell into branch 2). Run in your app:
+        //   php artisan effect-schema:debug-imports "App\Features\Recipe\Responses\ListRecipesResponse"
+        // to see configured transformers and per-type transformer path (null = wrong import will be added without safeguard).
         foreach ($referencedTypes as $fqcn => $info) {
             $name = $info['alias'];
             // Skip if it's already in this file
@@ -90,7 +100,8 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
                 if (!array_key_exists($relativePath, $imports)) {
                     $imports[$relativePath] = [];
                 }
-                // Import the Schema, the base type, and the encoded type
+                // Import Schema and base type only. Do NOT add {$name}Encoded for transformer-provided
+                // types (e.g. LengthAwarePaginator): the plugin file does not export an Encoded variant.
                 $imports[$relativePath]["{$name}Schema"] = "{$name}Schema";
                 $imports[$relativePath][$name] = $name;
 
@@ -108,11 +119,11 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
             if (!array_key_exists($relativePath, $imports)) {
                 $imports[$relativePath] = [];
             }
-            // Import the Schema, the base type, and the encoded type
+            // Import the Schema, the base type, and the encoded type (only if the target exports it)
             $imports[$relativePath]["{$name}Schema"] = "{$name}Schema";
             $imports[$relativePath][$name] = $name;
 
-            if (!($info['isEnum'] ?? false)) {
+            if (!($info['isEnum'] ?? false) && $this->referencedTypeExportsEncodedVariant($fqcn)) {
                 $imports[$relativePath]["{$name}Encoded"] = "{$name}Encoded";
             }
         }
@@ -251,6 +262,43 @@ class EffectSchemaSchemaWriter implements SchemaWriter, Transformer
         }
 
         return null;
+    }
+
+    /**
+     * Diagnostic: for a schema, return referenced types and whether each is provided by a transformer.
+     * Used by effect-schema:debug-imports to explain why an import (e.g. LengthAwarePaginatorEncoded) appears.
+     *
+     * @return array<int, array{fqcn: string, alias: string, transformer_path: string|null}>
+     */
+    public function debugImportDecisions(SchemaIR $schema): array
+    {
+        $referencedTypes = [];
+        foreach ($schema->properties as $property) {
+            $this->collectReferencedTypes($property->type, $referencedTypes);
+        }
+        $result = [];
+        foreach ($referencedTypes as $fqcn => $info) {
+            $result[] = [
+                'fqcn' => $fqcn,
+                'alias' => $info['alias'],
+                'transformer_path' => $this->getTransformerFilePathForType($fqcn),
+            ];
+        }
+        return $result;
+    }
+
+    /**
+     * Whether the type's generated file exports an Encoded variant (e.g. UserDataEncoded).
+     * Returns false for types like LengthAwarePaginator whose plugin file does not export *Encoded.
+     * Used when adding imports in the non-transformer path (e.g. app omits the plugin from config).
+     */
+    private function referencedTypeExportsEncodedVariant(string $fqcn): bool
+    {
+        $typesWithoutEncodedExport = [
+            'Illuminate\Pagination\LengthAwarePaginator',
+        ];
+
+        return !in_array($fqcn, $typesWithoutEncodedExport, true);
     }
 
     public function canTransform(

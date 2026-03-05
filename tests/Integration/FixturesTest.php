@@ -122,3 +122,68 @@ it('produces correct types for Enums', function () {
 
     expect($content)->toContain('export type Role = "host" | "player" | "spectator";');
 });
+
+/**
+ * Regression: Response with only LengthAwarePaginator (like ActivitiesList) must not
+ * import LengthAwarePaginatorEncoded — the Pagination plugin does not export that type.
+ * Correct: import { type LengthAwarePaginator, LengthAwarePaginatorSchema } from '...'
+ * Wrong:   import { ..., type LengthAwarePaginatorEncoded, ... } from '...'
+ * Reproducibility: if EffectSchemaSchemaWriter adds Encoded for transformer-provided types,
+ * this test fails (and the same for ListRecipesResponse below).
+ */
+it('ActivitiesList-style response does not import LengthAwarePaginatorEncoded', function () {
+    Artisan::call('effect-schema:transform');
+
+    $file = getExpectedFile('App\Features\Activity\Responses', 'ActivitiesList', $this->outputDir);
+    expect(File::exists($file))->toBeTrue('ActivitiesList.ts should be generated');
+
+    $content = File::get($file);
+    expect($content)->toContain('export interface ActivitiesList');
+    expect($content)->toContain('LengthAwarePaginatorSchema');
+    expect($content)->not->toContain('LengthAwarePaginatorEncoded');
+});
+
+/**
+ * Regression: Response with LengthAwarePaginator plus other properties (like ListRecipesResponse)
+ * must not import LengthAwarePaginatorEncoded — the Pagination plugin does not export that type.
+ * kitchenassistant (latest package) was generating the wrong import; this test ensures correct output.
+ */
+it('ListRecipesResponse-style response does not import LengthAwarePaginatorEncoded', function () {
+    Artisan::call('effect-schema:transform');
+
+    $file = getExpectedFile('App\Features\Recipe\Responses', 'ListRecipesResponse', $this->outputDir);
+    expect(File::exists($file))->toBeTrue('ListRecipesResponse.ts should be generated');
+
+    $content = File::get($file);
+    expect($content)->toContain('export interface ListRecipesResponse');
+    expect($content)->toContain('LengthAwarePaginatorSchema');
+    expect($content)->not->toContain('LengthAwarePaginatorEncoded');
+});
+
+/**
+ * Diagnostic: run effect-schema:debug-imports to see why a schema gets Pagination imports.
+ * With correct config (LengthAwarePaginatorPlugin in transformers), getTransformerFilePathForType
+ * should return a path for LengthAwarePaginator (transformer branch → we do NOT add *Encoded).
+ * If it returns null, we fall into the non-transformer branch and add LengthAwarePaginatorEncoded (wrong).
+ */
+it('debug-imports shows LengthAwarePaginator has transformer path (no Encoded import)', function () {
+    config([
+        'effect-schema.transformers' => [
+            \EffectSchemaGenerator\Plugins\LengthAwarePaginatorPlugin::class,
+            \EffectSchemaGenerator\Plugins\DatePlugin::class,
+            \EffectSchemaGenerator\Plugins\LazyOptionalPlugin::class,
+            \EffectSchemaGenerator\Plugins\CollectionPlugin::class,
+            \EffectSchemaGenerator\Writer\TypeEnumWriter::class,
+            \EffectSchemaGenerator\Writer\EffectSchemaEnumWriter::class,
+        ],
+    ]);
+
+    $exitCode = Artisan::call('effect-schema:debug-imports', [
+        'class' => 'App\Features\Recipe\Responses\ListRecipesResponse',
+    ]);
+    $output = Artisan::output();
+
+    expect($exitCode)->toBe(0, 'debug-imports should succeed and report correct Pagination import. Output: ' . $output);
+    expect($output)->toContain('path = ');
+    expect($output)->not->toContain('path = null (will add LengthAwarePaginatorEncoded');
+});

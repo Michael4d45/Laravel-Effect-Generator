@@ -497,8 +497,8 @@ it('validates correct number of classes and enums discovered from src/app dir', 
         ->filter(fn ($enum) => str_starts_with($enum, 'App\\Enums\\'));
 
     // Expected counts based on tests/Fixtures/src/app structure
-    // 68 Data classes: 3 Events + 23 Models + 13 Requests + 29 Response
-    expect($dataClasses->count())->toBe(68);
+    // 70 Data classes: 3 Events + 25 Models + 13 Requests + 29 Response (ActivityData, RecipeData added for paginator tests)
+    expect($dataClasses->count())->toBe(70);
 
     // 7 Enums in App\Enums (CredentialType, EventType, QuestionType, Role, SessionStatus, SortDirection, Visibility)
     // EnumUtil.php is a trait, not an enum, so it's excluded by enum_exists()
@@ -558,9 +558,9 @@ it('validates built AST has correct number of classes and enums in right namespa
     expect($root->namespaces)->toHaveKey('App\\Data\\Events');
     expect($root->namespaces['App\\Data\\Events']->schemas)->toHaveCount(3);
 
-    // App\Data\Models: 23 classes
+    // App\Data\Models: 25 classes (includes ActivityData, RecipeData for paginator regression tests)
     expect($root->namespaces)->toHaveKey('App\\Data\\Models');
-    expect($root->namespaces['App\\Data\\Models']->schemas)->toHaveCount(23);
+    expect($root->namespaces['App\\Data\\Models']->schemas)->toHaveCount(25);
 
     // App\Data\Requests: 13 classes
     expect($root->namespaces)->toHaveKey('App\\Data\\Requests');
@@ -579,7 +579,7 @@ it('validates built AST has correct number of classes and enums in right namespa
         ->filter(fn ($ns) => str_starts_with($ns->namespace, 'App\\Data\\'))
         ->sum(fn ($ns) => count($ns->schemas));
 
-    expect($totalSchemas)->toBe(68);
+    expect($totalSchemas)->toBe(70);
 
     $totalEnums = collect($root->namespaces)
         ->filter(fn ($ns) => str_starts_with($ns->namespace, 'App\\Enums'))

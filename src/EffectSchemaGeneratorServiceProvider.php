@@ -6,6 +6,7 @@ namespace EffectSchemaGenerator;
 
 use EffectSchemaGenerator\Builder\AstBuilder;
 use EffectSchemaGenerator\Commands\ClearCacheCommand;
+use EffectSchemaGenerator\Commands\DebugImportsCommand;
 use EffectSchemaGenerator\Commands\GenerateSchemasCommand;
 use EffectSchemaGenerator\Discovery\ClassDiscoverer;
 use EffectSchemaGenerator\Discovery\DataClassDiscoverer;
@@ -80,6 +81,7 @@ class EffectSchemaGeneratorServiceProvider extends ServiceProvider
 
             $this->commands([
                 ClearCacheCommand::class,
+                DebugImportsCommand::class,
                 GenerateSchemasCommand::class,
             ]);
 
