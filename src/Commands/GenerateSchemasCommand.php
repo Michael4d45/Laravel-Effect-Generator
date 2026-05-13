@@ -171,6 +171,8 @@ class GenerateSchemasCommand extends Command
                 $definition->namespace,
                 $definition->name,
             );
-        $this->line("  {$definition->fqcn} → {$outputDirectory}/{$relativePath}");
+        $this->line(
+            "  {$definition->fqcn} → {$outputDirectory}/{$relativePath}",
+        );
     }
 }

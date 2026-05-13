@@ -14,10 +14,7 @@ class OutputPathResolver
         string $schemaName,
     ): string {
         return (
-            $this->namespaceDirectory($namespace)
-            . '/'
-            . $schemaName
-            . '.ts'
+            $this->namespaceDirectory($namespace) . '/' . $schemaName . '.ts'
         );
     }
 
