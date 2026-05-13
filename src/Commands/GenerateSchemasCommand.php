@@ -8,7 +8,10 @@ use EffectSchemaGenerator\Builder\AstBuilder;
 use EffectSchemaGenerator\Discovery\ClassDiscoverer;
 use EffectSchemaGenerator\Reflection\DataClassParser;
 use EffectSchemaGenerator\Reflection\EnumParser;
+use EffectSchemaGenerator\Tokens\ClassToken;
+use EffectSchemaGenerator\Tokens\EnumToken;
 use EffectSchemaGenerator\Writer\FileWriter;
+use EffectSchemaGenerator\Writer\OutputPathResolver;
 use EffectSchemaGenerator\Writer\Transformer;
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
@@ -152,5 +155,22 @@ class GenerateSchemasCommand extends Command
         foreach ($enums as $enum) {
             $this->displayDefinition($enum);
         }
+    }
+
+    private function displayDefinition(ClassToken|EnumToken $definition): void
+    {
+        $pathResolver = new OutputPathResolver;
+        $outputDirectory =
+            $this->config['output']['directory'] ?? resource_path('ts/schemas');
+        $relativePath = $definition instanceof ClassToken
+            ? $pathResolver->schemaFilePath(
+                $definition->namespace,
+                $definition->name,
+            )
+            : $pathResolver->enumFilePath(
+                $definition->namespace,
+                $definition->name,
+            );
+        $this->line("  {$definition->fqcn} → {$outputDirectory}/{$relativePath}");
     }
 }

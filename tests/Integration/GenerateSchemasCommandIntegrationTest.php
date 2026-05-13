@@ -122,12 +122,10 @@ it('generates Effect schemas when configured', function () {
 });
 
 it('handles dry-run mode without writing files', function () {
-    // Run with dry-run (note: dry-run has a known issue with displayDefinition being commented out)
     $status = Artisan::call('effect-schema:transform', ['--dry-run' => true]);
-    
-    // Status might be 1 due to incomplete displayDefinition, but files should not be written
-    // This is a known limitation - the displayDefinition method is currently stubbed
-    
+
+    expect($status)->toBe(0);
+
     // Temp directory should still exist but no .ts files written
     $iterator = new RecursiveIteratorIterator(
         new RecursiveDirectoryIterator($this->outputDir),
