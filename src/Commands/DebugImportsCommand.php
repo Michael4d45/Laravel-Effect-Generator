@@ -80,11 +80,13 @@ class DebugImportsCommand extends Command
         $namespace = null;
         foreach ($ast->namespaces as $ns) {
             foreach ($ns->schemas as $s) {
-                if ($s->name === class_basename($targetClass)) {
-                    $schema = $s;
-                    $namespace = $ns;
-                    break 2;
+                if ($s->name !== class_basename($targetClass)) {
+                    continue;
                 }
+
+                $schema = $s;
+                $namespace = $ns;
+                break 2;
             }
         }
 
@@ -160,10 +162,12 @@ class DebugImportsCommand extends Command
 
         $paginationKey = null;
         foreach (array_keys($imports) as $key) {
-            if (stripos($key, 'Pagination') !== false) {
-                $paginationKey = $key;
-                break;
+            if (stripos($key, 'Pagination') === false) {
+                continue;
             }
+
+            $paginationKey = $key;
+            break;
         }
         if (
             $paginationKey !== null

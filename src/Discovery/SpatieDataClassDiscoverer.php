@@ -67,7 +67,9 @@ class SpatieDataClassDiscoverer implements DataClassDiscoverer
 
             $classResult = $result->result();
             if (
-                $classResult instanceof \Laravel\Surveyor\Analyzed\ClassResult
+                $classResult
+                    instanceof \Laravel\Surveyor\Analyzed\ClassLikeResult
+                && $classResult->isClass()
             ) {
                 $extends = $classResult->extends();
                 assert(

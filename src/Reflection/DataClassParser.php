@@ -7,7 +7,7 @@ namespace EffectSchemaGenerator\Reflection;
 use EffectSchemaGenerator\Tokens\ClassToken;
 use EffectSchemaGenerator\Tokens\PublicPropertyToken;
 use Laravel\Surveyor\Analysis\Scope;
-use Laravel\Surveyor\Analyzed\ClassResult;
+use Laravel\Surveyor\Analyzed\ClassLikeResult;
 use Laravel\Surveyor\Analyzed\PropertyResult;
 use Laravel\Surveyor\Analyzer\Analyzer;
 use Laravel\Surveyor\Parser\DocBlockParser as SurveyorDocBlockParser;
@@ -65,8 +65,8 @@ class DataClassParser
         $classResult = $analyzer->result();
 
         assert(
-            $classResult instanceof ClassResult,
-            'Should always be a ClassResult',
+            $classResult instanceof ClassLikeResult,
+            'Should always be a ClassLikeResult',
         );
         // Get the analyzed scope for namespace and use statement resolution
         $scope = $analyzer->analyzed();
@@ -161,13 +161,13 @@ class DataClassParser
     }
 
     /**
-     * Extract properties from a ClassResult and its parent classes.
+     * Extract properties from a ClassLikeResult and its parent classes.
      *
      * @param class-string $className
      * @return array<string,PublicPropertyToken>
      */
     private function extractPublicProperties(
-        ClassResult $classResult,
+        ClassLikeResult $classResult,
         string $className,
     ): array {
         $properties = [];
